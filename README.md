@@ -1,6 +1,6 @@
 # Helix-EXon-finder
 
-<u>H</u>elix-<u>EX</u>on-finder, or <u>HEX</u> finder, is a a command-line tool that uses uses a deep learning model trained on physicochemical profiles derived from DNA sequences for genomic feature detection.
+**H**elix-**EX**on-finder, or **HEX** finder, is a a command-line tool that uses uses a deep learning model trained on physicochemical profiles derived from DNA sequences for genomic feature detection.
 
 + The models and algorithms at the heart of this tool were developed, trained, and evaluated for my final project in the Brandeis GPS Bioinformatics program for an independence research course (RBIF 120).
 
