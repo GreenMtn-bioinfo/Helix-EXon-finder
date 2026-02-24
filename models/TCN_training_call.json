@@ -1,0 +1,48 @@
+{
+    "saves_base_dir": "./TCN_final/",
+    "batch_size": 64,
+    "max_epochs": 10,
+    "base_name": "TCN",
+    "model_args": {
+        "n_filters": 256,
+        "kernel_size": 3,
+        "dilations": [
+            1,
+            2,
+            6,
+            10
+        ],
+        "dense_layer_dims": [
+            256
+        ],
+        "print_summary": true
+    },
+    "model_name": null,
+    "stop_save_metric": "val_loss",
+    "patience": 0,
+    "min_delta": 0.001,
+    "run_type": "final_eval",
+    "val_proportion": null,
+    "down_sample": null,
+    "N_folds": null,
+    "lr_decay": false,
+    "lr": 0.0002,
+    "final_lr": null,
+    "plot_results": false,
+    "folds_dir": null,
+    "class_weights": {
+        "control_exons": 1.6335908328621485,
+        "control_introns_intergenic": 13.689699847597453,
+        "control_introns_intron": 5.7664501502172225,
+        "exon-intron": 1.6736597315325157,
+        "intron-exon": 1.6757816060523198
+    },
+    "class_encoding": {
+        "control_exons": 0,
+        "control_introns_intergenic": 0,
+        "control_introns_intron": 0,
+        "intron-exon": 1,
+        "exon-intron": 2
+    },
+    "norm_mode": "z_minmax"
+}

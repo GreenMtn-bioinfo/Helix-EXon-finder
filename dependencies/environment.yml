@@ -1,0 +1,19 @@
+name: hex_finder
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - python=3.10.18
+  - pip
+  - wget
+  - samtools
+  - bedtools
+  - numpy
+  - pandas
+  - pip:
+    - "tensorflow[and-cuda]>=2.15"
+    - tcn
+    - npy_append_array
+    - colorama
+    - biopython
