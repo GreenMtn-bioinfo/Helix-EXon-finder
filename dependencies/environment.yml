@@ -1,4 +1,4 @@
-name: hex_finder
+name: HEX-finder
 channels:
   - conda-forge
   - bioconda
@@ -13,7 +13,7 @@ dependencies:
   - pandas
   - pip:
     - "tensorflow[and-cuda]>=2.15"
-    - tcn
+    - keras-tcn
     - npy_append_array
     - colorama
     - biopython

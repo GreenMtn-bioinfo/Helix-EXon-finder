@@ -5,7 +5,7 @@ import sys
 
 ### This is main script, which provides command-line access to the exon-prediction models and post-processing pipeline that were created/trained/evaluated
 ### in the work described by the manuscript (https://doi.org/10.64898/2025.12.19.694709). There are two additional tools that facilitate fetching sequences
-### and reference annotation and later visualizing Hex Finder predictions right next to RefSeq features for the same sequence (if present). These tools have been
+### and reference annotation and later visualizing HEX-finder predictions right next to RefSeq features for the same sequence (if present). These tools have been
 ### provided so that the performance of this method can be transparently and conveniently assessed ('get_demo_seqs.py" and "visualize_predictions.py, see REAME).
 ### That said, all that is required to use this script is a FASTA containing the target sequences, with unique sequence IDs at the start of each header (between '>' and whitespace). 
 ### The output will be a series of GFF files (one per sequence) that record the exons predicted for each (if any). These will be saved in '../predictions/'.
@@ -22,7 +22,7 @@ import sys
 
 
 ### PARSE USER ARGUMENTS PROVIDED AT THE COMMAND LINE
-parser = argparse.ArgumentParser(description='Helix EXon Finder (HEX Finder): Predict exons from genomic DNA sequences using a deep learning network trained on predicted structural profiles. For more details on the underlying methods and performance, see the README and referenced manuscript (https://doi.org/10.64898/2025.12.19.694709).')
+parser = argparse.ArgumentParser(description='Helix-EXon-finder (HEX-finder): Predict exons from genomic DNA sequences using a deep learning network trained on predicted structural profiles. For more details on the underlying methods and performance, see the README and acompanying manuscript (https://doi.org/10.64898/2025.12.19.694709).')
 parser.add_argument('-f','--fasta', type=str, required=True, metavar='<path_to_fasta>',
                     help='Path to an input FASTA file containing genomic sequences to analyze. Sequence IDs, which are used as profile (NPY) and prediction (GFF) file names, are taken from the header between ">" and the next whitespace. Please keep your sequence IDs concise, unique, and filename friendly.')
 parser.add_argument('-m', '--model', type=str, default='TCN', choices=['TCN', 'BiLSTM', 'MBDA-Net'], metavar= "<'TCN' or 'BiLSTM' or 'MBDA-Net'>",
@@ -360,7 +360,7 @@ def write_exons_to_gff(gff_path: str,
                 attribute_string = attribute_string + f';SEQUENCE_LENGTH={sequence_length}'
             newlines.append(f'{sequence_id}\t{source}\t{feature_type}\t{feature[0]}\t{feature[1]}\t{round(feature[2], 2)}\t.\t.\t{attribute_string}\n')
     else:
-        newlines.append(f'Hex Finder made no exon predictions for sequence {sequence_id} of length {sequence_length} bp.')
+        newlines.append(f'HEX-finder made no exon predictions for sequence {sequence_id} of length {sequence_length} bp.')
     
     with open(gff_path, mode='w') as file:
         file.writelines(newlines)
@@ -523,7 +523,7 @@ if __name__ == '__main__':
         
     # Show final completion message
     final_end = time.time()
-    full_msg = f'HEX Finder finished making predictions for all {len(profiles_list)} sequences! Took {round((final_end - beginning)/60, 2)} minutes for {total_bp} bp of total sequence length.'
+    full_msg = f'HEX-finder finished making predictions for all {len(profiles_list)} sequences! Took {round((final_end - beginning)/60, 2)} minutes for {total_bp} bp of total sequence length.'
     full_msg = pad_message(full_msg, msg_length)
     print(Fore.GREEN + full_msg)
     
@@ -535,4 +535,5 @@ if __name__ == '__main__':
         print(Fore.GREEN + f"--> Structural profiles can be found in '{profiles_dir}' as NPY files (one file per processed input sequence).")
     
     print(Fore.GREEN + f"--> Exon-level predictions can be found in '{predictions_dir}' within GFF files (one file per processed input sequence).")
-    print(Fore.YELLOW + "--> Consider running 'visualize_predictions.py' for visualization of results and comparison to known truth features (if available).")
+    print(Fore.YELLOW + "--> Consider using './visualize_predictions.sh' to look at the exons and compare them to known truth features (if available).")
+    print(Fore.YELLOW + "--> Run './visualize_predictions.sh --help' for more information on this tool's usage.")

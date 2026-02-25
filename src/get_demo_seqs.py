@@ -3,12 +3,12 @@ import sys
 
 
 
-### This is simple command line tool that retrieves sequences and relevant truth features from GRCh38.p14 in order to try Hex Finder.
+### This is simple command line tool that retrieves sequences and relevant truth features from GRCh38.p14 in order to try HEX-finder.
 ### The user can provide their own coordinates to use, or sequences can be randomly sampled from the held-out regions.
 ### Warnings will be issued if the user provides coordinates that fall within the training regions of the genome (see ../data/held_out_regions_GRCh38_p14.txt).
 ### As an example, demo files and this script's corresponding output are provided for the sequences in Figure 11 of the manuscript (in ../demo_sequences/).
 ### This script does not have to be re-run unless you want to retrieve new sequences from GRCh38.p14 (randomly sampled or chosen by you).
-### Also, this script is not necessary at all for running Hex Finder if you have your own sequence file (and/or local truth features file already, see README).
+### Also, this script is not necessary at all for running HEX-finder if you have your own sequence file (and/or local truth features file already, see README).
 ### This script must be run from a Linux command line environment with bedtools and samtools installed as well as Python and
 ### several Python libraries (see the conda config file provided in ../dependencies/)
 
@@ -16,7 +16,7 @@ import sys
 
 ### PARSE USER ARGUMENTS PROVIDED AT THE COMMAND LINE 
 #TODO: Improve formatting of this help description string
-parser = argparse.ArgumentParser(description="Facilitates retrieving sequences and reference features from GRCh38.p14 in order to try out Hex Finder's exon prediction capabilities. It will fetch the required reference genome if none is present or provided (see <reference_genome_directory>). This tool has two mutually exclusive use cases: 1) The user provides a path to a file of genomic coordinates (see <coordinates_file>) and sequences plus annotation are prepared for that set. 2) The user provides an integer (see <number_to_sample>), as well as a file with the allowed sequence lengths (see <lengths_distribution_file>), for random sampling. Coordinates from within the genomic regions withheld from the models' training set are first randomly sampled, and then the corresponding sequences and reference features are prepared. In either use case, reference exons within the sequences/coordinates of interest are retrieved and converted into local, 1-based coordinates (wrt to each sequence's start). The resulting GFF can be used with 'visualize_predictions.py' to visually evaluate Hex Finder's predictions directly against RefSeq MANE Select exons as a truth source.")
+parser = argparse.ArgumentParser(description="Facilitates retrieving sequences and reference features from GRCh38.p14 in order to try out HEX-finder's exon prediction capabilities. It will fetch the required reference genome if none is present or provided (see <reference_genome_directory>). This tool has two mutually exclusive use cases: 1) The user provides a path to a file of genomic coordinates (see <coordinates_file>) and sequences plus annotation are prepared for that set. 2) The user provides an integer (see <number_to_sample>), as well as a file with the allowed sequence lengths (see <lengths_distribution_file>), for random sampling. Coordinates from within the genomic regions withheld from the models' training set are first randomly sampled, and then the corresponding sequences and reference features are prepared. In either use case, reference exons within the sequences/coordinates of interest are retrieved and converted into local, 1-based coordinates (wrt to each sequence's start). The resulting GFF can be used with 'visualize_predictions.py' to visually evaluate HEX-finder's predictions directly against RefSeq MANE Select exons as a truth source.")
 
 # Arguments that apply to either use case
 parser.add_argument('-q', '--quiet', action='store_true',
@@ -231,7 +231,7 @@ def fetch_truth_features(chrom: str,
     """
     Finds the overlapping truth/reference features for a given genomic region and writes them to a GFF file (using bedtools).
     Importantly, the coordinates of these overlapping features are saved as local 1-based coordinates (i.e. wrt the sequence start/length).
-    This facilitates direct comparison to Hex Finder predictions (e.g. using 'visualize_predictions.py'), which are wrt the sequence.
+    This facilitates direct comparison to HEX-finder predictions (e.g. using 'visualize_predictions.py'), which are wrt the sequence.
     
     Args:
         chrom: The chromsome identifier for the reference genome being used
@@ -310,6 +310,8 @@ if __name__ == '__main__':
     # Check for a reference genome. Warn/stop if any reference files are missing and ask to retrieve reference files if needed
     if not quiet:
         print(Fore.MAGENTA + 'Checking for a reference genome and annotation...')
+    if not os.path.exists(reference_dir):
+        os.makedirs(reference_dir)
     if any(not exists for exists in check_ref_dir(reference_dir)):
         print(Fore.RED + f"ERROR: One or more of the necessary reference files (.fna, .fai, and .gff) were not found in '{reference_dir}'.")
         print(Fore.YELLOW + f"--> Please specify a path to a different directory with your own copies of these 3 files using the -r or --reference_dir option.")
@@ -379,7 +381,7 @@ if __name__ == '__main__':
         print(Fore.RED + "1) A path to a valid coordinates file (-c). The file '../demo_sequences/Figure11_demo_regions' has been provided as a valid example.")
         print(Fore.RED + "OR")
         print(Fore.RED + "2) A number of coordinates to randomly sample (-n) and a file of allowed lengths (-l, see '../demo_sequences/example_length_dist' for an example).")
-        print(Fore.YELLOW + "Please see the README or run 'python get_demo_seqs.py --help' for more information.")
+        print(Fore.YELLOW + "Please see the README or run './get_demo_seqs.sh --help' for more information.")
         exit()
     
     
@@ -429,7 +431,7 @@ if __name__ == '__main__':
             if coord_start >= int(held_out[1]) and coord_start <= int(held_out[2]):
                 unseen_seq_flag = True
         if not unseen_seq_flag:
-            print(Fore.YELLOW + f"WARNING: {region} on line {i+1} of '{chosen_file}' overlaps with Hex Finder's training region, interpret model output/performance with this in mind!")
+            print(Fore.YELLOW + f"WARNING: {region} on line {i+1} of '{chosen_file}' overlaps with HEX-finder's training region, interpret model output/performance with this in mind!")
         
         # Handle strand symbol (+ or -), if found
         if match.group(4) is not None:
@@ -465,12 +467,12 @@ if __name__ == '__main__':
         with open(truth_features_path, mode='r') as file:
             lines = file.readlines()
             if not lines:
-                print(Fore.GREEN + f"No reference exons were found for these sequences, but this GFF is still valid to use with 'visualize_predictions.py'.")
+                print(Fore.GREEN + f"No reference exons were found for these sequences, but this GFF is still valid to use with 'visualize_predictions.sh'.")
     
     # Clear the temp folder, contents are no longer needed
     shutil.rmtree(temp_dir)
     os.mkdir(temp_dir)
     
     # Print final messages
-    print(Fore.YELLOW + f"--> You can now run 'python hex_finder.py -f {output_fasta}' to make predictions.")
-    print(Fore.YELLOW + f"--> Or try 'python hex_finder.py --help' for more information on the options (or see README).")
+    print(Fore.YELLOW + f"--> You can now run './HEX-finder.sh -f {output_fasta}' to make predictions.")
+    print(Fore.YELLOW + f"--> Or try '/HEX-finder.sh --help' for more information on the options (or see README).")

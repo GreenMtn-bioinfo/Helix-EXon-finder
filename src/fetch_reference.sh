@@ -1,6 +1,6 @@
 #! /bin/bash
 
-## Utility script provided in case the user does not already have a copy of human reference genome GRCh38.p14 to try Hex Finder on
+## Utility script provided in case the user does not already have a copy of human reference genome GRCh38.p14 to try HEX-finder on
 ## This script downloads the GRCh38.p14 genomic FASTA (.fna) and RefSeq annotation (.gff) files from the NCBI FTP server, decompresses them, and indexes the FASTA file using samtools.
 ## Remember to "chmod 700" or similar this script before attempting to execute
 ## Remember to run in an environment with gunzip, wget, and samtools installed (see provided environment config)
