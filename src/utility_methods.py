@@ -5,7 +5,7 @@ init(autoreset=True)
 
 ### This module contains functions/methods used by more than one of the other scripts
 ### It is not very large right now but may save lines of code as the project grows
-# TODO: Rename and refactor to also hold project-wide paths and constants in one place
+# TODO: Combine with the paths module?
 
 
 

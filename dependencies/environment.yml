@@ -18,3 +18,4 @@ dependencies:
     - npy_append_array
     - colorama
     - biopython
+    - plotly
