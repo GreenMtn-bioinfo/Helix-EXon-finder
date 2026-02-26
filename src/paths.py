@@ -30,12 +30,13 @@ for dir in make_dirs:
     dir.mkdir(parents=True, exist_ok=True)
 
 
-## Define specific file names and sub-sub-directories used in the core modules
+## Define additional specific file names and sub-sub-directories used in the core modules
 
 # Used by get_demo_seqs.py
 HELD_OUT = DATA_DIR / "held_out_regions_GRCh38_p14.txt"
 FIG_11_DEMO = DEMO_SEQS_DIR / "Figure11_demo_regions"
 EXAMPLE_DIST = DEMO_SEQS_DIR / "example_length_distribution"
+GENOME_FETCHER = PROJECT_ROOT / "src" / "fetch_reference.sh"
 
 # Used by hex_finder.py
 NORM_DATA_PATHS = [NORM_DIR / 'z_norm_training_means.npy', 

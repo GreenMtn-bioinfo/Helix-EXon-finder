@@ -16,7 +16,7 @@ def main():
     
     import argparse
     import sys
-    from .paths import DEMO_SEQS_DIR, REFERENCE_DIR, HELD_OUT, FIG_11_DEMO, EXAMPLE_DIST, shorten_path
+    from .paths import DEMO_SEQS_DIR, REFERENCE_DIR, HELD_OUT, FIG_11_DEMO, EXAMPLE_DIST, GENOME_FETCHER, shorten_path
     
     
     
@@ -335,7 +335,7 @@ def main():
         print(Fore.YELLOW + "--> Alternatively, run 'fetch_reference.sh' to get an indexed reference genome (GRCh38.p14) and corresponding annotation.")
         fetch_reference = input("--> Would you like to run 'fetch_reference.sh' now to get GRCh38.p14 and the required annotation? (y/n) ")
         if fetch_reference == 'y':
-            command = f'./fetch_reference.sh'
+            command = f"{GENOME_FETCHER} {REFERENCE_DIR}"
             execute_status = subprocess.run(command, shell=True)
             if any(not exists for exists in check_ref_dir(reference_dir)):
                 print(Fore.RED + "Something went wrong during reference genome retrieval.\nPlease check your internet connection and/or the FTP addresses in 'fetch_reference.sh' and try again.")
