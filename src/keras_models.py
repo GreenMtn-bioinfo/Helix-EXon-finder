@@ -1,4 +1,4 @@
-from tf_quiet import import_tf_quietly
+from .tf_quiet import import_tf_quietly
 tf = import_tf_quietly()
 import keras
 from tcn import TCN

@@ -2,7 +2,7 @@
 
 **H**elix-**EX**on-finder, or **HEX**-finder, is a command-line tool that uses a deep learning model trained on physicochemical profiles derived from DNA sequences for *ab initio* genomic feature detection:
 
-+ The models and algorithms at the heart of this tool were developed, trained, and evaluated for my final project in the Brandeis GPS Bioinformatics program during an 8-week independence research course (RBIF 120). Please see the [pre-print](https://doi.org/10.64898/2025.12.19.694709) written about that work for more details. The aim of this project was intentionally challenging, and in the process I learned many things about sequence analysis, *ab initio* gene detection, machine learning, and the structure of B-DNA.
++ The models and algorithms at the heart of this tool were developed, trained, and evaluated for my final project in the Brandeis GPS Bioinformatics program during an 8-week independence research course (RBIF 120). Please see the [pre-print](https://doi.org/10.64898/2025.12.19.694709) written about that work for more details.
 
 + This work was inspired by and based on work [published by Mishra et al. in 2021](https://doi.org/10.1093/nar/gkab098), as well as follow-up work published by [Sharma et al. in 2025](https://doi.org/10.1039/D4MO00241E).
 
@@ -10,6 +10,6 @@
 
 + Please contact **jhgmbioinfo@gmail.com** with any questions about the [pre-print](https://doi.org/10.64898/2025.12.19.694709) or source code.
 
-+ Documentation on how to set up and run this tool is coming soon.
++ Documentation on how to set up and use this repo is coming very soon.
 
 + A separate repository will be made to share the code written to train and evaluate the models at the heart of HEX-finder, which was the bulk of the work detailed in the [pre-print](https://doi.org/10.64898/2025.12.19.694709). This will come with no guarantee of portability/reproducibility, though basic documentation and a YAML to recreate the environment/dependencies will be provided. 

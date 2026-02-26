@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "Helix-EXon-Finder"
+version = "0.1"
+description = "An attempt at using structural profiles of DNA sequences for ab initio exon detection."
+# NOTE: Conda and the provided YAML in ./dependencies/environment.yml should be used BEFORE installing
+# this package via pip from within the created environment, this is because there are dependencies
+# that pip is not capable of handling (see README for full installation instructions)
+dependencies = [] # There ARE pip dependencies but specifying them here would be deceiving (see NOTE above)
+
+[project.scripts]
+HEX-finder-get_demo_seqs = "get_demo_seqs:main"
+HEX-finder = "hex_finder:main"
+HEX-finder-visualize_predictions = "visualize_predictions:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

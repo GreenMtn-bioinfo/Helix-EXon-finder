@@ -6,6 +6,7 @@ import Bio.SeqIO as SeqIO
 import math
 import multiprocessing
 from npy_append_array import NpyAppendArray
+from .paths import PROFILES_DIR, SKIPPED_LOG_NAME, TRINUCLEO, TETRANUCLEO
 from colorama import Fore, init
 init(autoreset=True)
 
@@ -22,12 +23,12 @@ init(autoreset=True)
 
 # MODULE PATHS AND CONSTANTS (DO NOT CHANGE UNLESS YOU REALLY KNOW WHAT YOU'RE DOING)
 maximum_sequence_length_allowed = 10000000 # TODO: Revisit this number. While technically possible, it may take a while to process and predict for such a long sequence.
-profiles_save_path = '../profiles/'
-log_file_name = "skipped_sequences_log.txt"
+profiles_save_path = PROFILES_DIR
+log_file_name = SKIPPED_LOG_NAME
 window_length = 27
 model_input_size = (77, 28) # Locked by model architecture and training
-param_table_paths = { 3 : '../data/trinucleo_Sharma_et_al_2025_params.csv', # Path to CSV of 22 TRI-nuncleotide-based physicochemical parameters calculated by Sharma et al., 2025 (see README and manuscript)
-                      4 : '../data/tetranucleo_Sharma_et_al_2025_params.csv'} # Path to CSV of 6 TETRA-nuncleotide-based physicochemical parameters calculated by Sharma et al., 2025 (see README and manuscript)
+param_table_paths = { 3 : TRINUCLEO, # Path to CSV of 22 TRI-nuncleotide-based physicochemical parameters calculated by Sharma et al., 2025 (see README and manuscript)
+                      4 : TETRANUCLEO} # Path to CSV of 6 TETRA-nuncleotide-based physicochemical parameters calculated by Sharma et al., 2025 (see README and manuscript)
 script_name = os.path.basename(__file__) # Used globally in print statements to provide the name of this file (useful for debugging when used in pipeline)
 skip_seqs_w_Ns = True
 placeholder = 'VOID'
@@ -45,7 +46,7 @@ threads_to_save = 2 # How many of the CPU threads are left for the system (i.e. 
 
 def log_sequence(field1: str,
                  field2: str,
-                 log_path: str = f'{profiles_save_path}{log_file_name}'):
+                 log_path: str = PROFILES_DIR / SKIPPED_LOG_NAME):
     """
     Utility function for logging the success/outcome for each sequence during profile generation.
     This provides documentation to the user if sequences were skipped/dropped due to any issues.
@@ -334,13 +335,13 @@ def process_long_sequence(seq_tuple: tuple,
              print(Fore.RED + f"{script_name}: Warning! Stitched profile length {full_profile.shape[1]} does not match expected {expected_len} for {seq_id}.")
              
         if one_file_per_seq:
-            np.save(f'{profiles_path}{seq_id}.npy', full_profile)
+            np.save(profiles_path / f'{seq_id}.npy', full_profile)
         else:
             # If not one file per seq, we append to the bulk file for this total length
-            with NpyAppendArray(f'{profiles_path}{seq_len}bp_seq_profiles.npy', delete_if_exists=False) as npy_file:
+            with NpyAppendArray(profiles_path / f'{seq_len}bp_seq_profiles.npy', delete_if_exists=False) as npy_file:
                 npy_file.append(np.reshape(full_profile, shape=(1, *full_profile.shape)))
             
-            with open(f'{profiles_path}{seq_len}bp_seq_ids.txt', mode='a') as file:
+            with open(profiles_path / f'{seq_len}bp_seq_ids.txt', mode='a') as file:
                 file.writelines(f'{seq_id}\n')
                 
         return 1
@@ -403,16 +404,16 @@ def profiles_batch(seq_items: list,
                 if one_file_per_seq:
                     
                     # Save the physicochemical profile for this sequence to a file named after the header from the FASTA file
-                    np.save(f'{profiles_path}{result[0]}.npy', result[1])
+                    np.save(profiles_path / f'{result[0]}.npy', result[1])
                 
                 else:
                     
                     # Append this profile to the NPY file with others of the same length
-                    with NpyAppendArray(f'{profiles_path}{result[3]}bp_seq_profiles.npy', delete_if_exists=False) as npy_file:
+                    with NpyAppendArray(profiles_path / f'{result[3]}bp_seq_profiles.npy', delete_if_exists=False) as npy_file:
                         npy_file.append(np.reshape(result[1], shape=(1, *result[1].shape)))
                 
                     # Note the order of the sequences saved in the NPY file (ids are the headers from the FASTA)
-                    with open(f'{profiles_path}{result[3]}bp_seq_ids.txt', mode='a') as file:
+                    with open(profiles_path / f'{result[3]}bp_seq_ids.txt', mode='a') as file:
                         file.writelines(f'{result[0]}\n')
                 
                 N_completed += 1
