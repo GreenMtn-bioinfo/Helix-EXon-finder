@@ -34,7 +34,7 @@ for dir in make_dirs:
 
 # Used by get_demo_seqs.py
 HELD_OUT = DATA_DIR / "held_out_regions_GRCh38_p14.txt"
-FIG_11_DEMO = DEMO_SEQS_DIR / "Figure11_demo_regions"
+FIG_11_DEMO = DEMO_SEQS_DIR / "Figure11_demo_coords"
 EXAMPLE_DIST = DEMO_SEQS_DIR / "example_length_distribution"
 GENOME_FETCHER = PROJECT_ROOT / "src" / "fetch_reference.sh"
 

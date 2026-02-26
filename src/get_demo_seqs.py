@@ -91,13 +91,14 @@ def main():
     temp_gff_path = temp_dir / 'temp_coords.gff'
 
     # This is used to write output if random sampling was chosen
-    sampled_coords_path = operating_dir / f'{output_name}_coords.txt'
+    sampled_coords_path = operating_dir / f'{output_name}_coords'
 
     # This is used to write sequence output file
-    output_fasta = operating_dir / f'{output_name}.fasta'
+    base_name = shorten_path(seq_coords_file, 1) if seq_coords_file else output_name
+    output_fasta = operating_dir / f'{base_name}.fasta'
 
     # This is used to write truth features output file
-    truth_features_path = operating_dir / f'{output_name}_truth_features_local.gff'
+    truth_features_path = operating_dir / f'{base_name}_truth_features_local.gff'
 
     # Define paths for temporary GFF files used during processing
     mane_select_exons_gff = temp_dir / 'mane_select_exons.gff'
@@ -390,6 +391,8 @@ def main():
         chosen_file = sampled_coords_path
         if not quiet:
             print(Fore.GREEN + f"Sampled {n_regions} coordinates from within held-out regions of the genome, with lengths drawn from '{lengths_file}'.")
+        
+        
     
     # Handle if the user does not provide the parameters to follow either path/use case
     else:
