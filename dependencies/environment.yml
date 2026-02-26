@@ -7,14 +7,14 @@ dependencies:
   - python=3.10.18
   - pip
   - wget
-  - samtools
-  - bedtools
+  - samtools=1.22.1
+  - bedtools=2.31.1
   - numpy
   - pandas
   - pip:
     - "tensorflow[and-cuda]>=2.15"
-    - keras-tcn
-    - npy_append_array
-    - colorama
-    - biopython
-    - plotly
+    - keras-tcn=3.5.6
+    - npy-append-array=0.9.19
+    - colorama=0.4.6
+    - biopython=1.86
+    - plotly=6.0.1

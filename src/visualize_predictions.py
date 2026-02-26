@@ -746,6 +746,7 @@ def main():
                 print(Fore.GREEN + f"Custom styles and modifications added successfully to '{save_path}'.")
         except Exception as e:
             print(Fore.RED + f"An error occurred while writing to the file: {e}")
+            exit()
 
 
 
