@@ -332,10 +332,9 @@ def main():
     if any(not exists for exists in check_ref_dir(reference_dir)):
         print(Fore.RED + f"ERROR: One or more of the necessary reference files (.fna, .fai, and .gff) were not found in '{reference_dir}'.")
         print(Fore.YELLOW + f"--> Please specify a path to a different directory with your own copies of these 3 files using the -r or --reference_dir option.")
-        print(Fore.YELLOW + "--> Alternatively, run 'fetch_reference.sh' to get an indexed reference genome (GRCh38.p14) and corresponding annotation.")
-        fetch_reference = input("--> Would you like to run 'fetch_reference.sh' now to get GRCh38.p14 and the required annotation? (y/n) ")
+        fetch_reference = input("--> Alternatively, would you like to automatically fetch GRCh38.p14 and the required annotation now and use that? (y/n) ")
         if fetch_reference == 'y':
-            command = f"{GENOME_FETCHER} {REFERENCE_DIR}"
+            command = f"{GENOME_FETCHER} {REFERENCE_DIR}/"
             execute_status = subprocess.run(command, shell=True)
             if any(not exists for exists in check_ref_dir(reference_dir)):
                 print(Fore.RED + "Something went wrong during reference genome retrieval.\nPlease check your internet connection and/or the FTP addresses in 'fetch_reference.sh' and try again.")

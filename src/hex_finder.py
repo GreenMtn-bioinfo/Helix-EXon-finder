@@ -470,7 +470,7 @@ def main ():
         full_msg = f'Processing profile {i+1} of {len(profiles_list)}: {profile_file.name}. Rough ETC: {msg}'
         full_msg = pad_message(full_msg, msg_length)
         if i == 0:
-            print(Fore.GREEN + 'Stand by for inference update with an ETC. First update can take a minute or two and always overestimates.')
+            print(Fore.GREEN + 'Stand by for inference update with an ETC. First update can take a minute or two and always overestimates (ETC accuracy improves).')
             print(Fore.WHITE + '---- TENSORFLOW OUTPUT (can likely ignore) ----')  # Reset color, prompt user to ignore TF output
         else:
             print(Fore.MAGENTA + full_msg, end='\r', flush=True)
