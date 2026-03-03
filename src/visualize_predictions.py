@@ -13,6 +13,7 @@
 
 # TODO: Plot customization?
 # TODO: Add an additional profile visualization script that can be used if structural profiles are saved/available?
+# TODO: Double-click tooltip still comes up in final report after first zoom on another Linux system (even after Plotly version lock)
 
 
 def main():
@@ -60,6 +61,9 @@ def main():
     import re
     import base64
     import os
+    import textwrap
+    from bs4 import BeautifulSoup
+    from bs4.formatter import HTMLFormatter
     import subprocess
     import shutil
     import plotly.graph_objects as go
@@ -76,6 +80,8 @@ def main():
     favicon_path = FAVICON
     shadow_color = 'rgba(0, 0, 0, 0.3)'
     shadow_intensity = '4px 4px 8px'
+    plot_width_percent = "98%" # How much of the HTML page width does the plot occupy?
+    body_background_color = '#e0e0e0'
 
 
 
@@ -132,10 +138,11 @@ def main():
                                 shade_margin: int = int(26/2 + 76/2),
                                 # Customization Options
                                 plot_title=None,
+                                add_note=False,
                                 xaxis_label="Position in sequence (bp)",
                                 font_family="Arial",
                                 title_font_size=24,
-                                title_bold=False,
+                                title_bold=True,
                                 label_font_size=18,
                                 label_bold=False,
                                 tick_font_size=14,
@@ -262,7 +269,7 @@ def main():
             current_tick_text.append(default_label)
             
         # Prepare axis and plot titles and ticks
-        final_title_str = plot_title if plot_title is not None else f"Exon-level predictions for {seq_id}"
+        final_title_str = plot_title if plot_title is not None else f"Exon-level predictions for {seq_id}{' *' if add_note else ''}"
         final_title_text = f"<b>{final_title_str}</b>" if title_bold else final_title_str
         final_xaxis_text = f"<b>{xaxis_label}</b>" if label_bold else xaxis_label
         if tick_bold:
@@ -393,8 +400,12 @@ def main():
 
 
     def apply_copyable_seq_id_wrapper(html_content: str,
-                                    shadow_color: str = shadow_color, 
-                                    shadow_intensity: str = shadow_intensity) -> str:
+                                      body_background_color: str = body_background_color,
+                                      shadow_color: str = shadow_color, 
+                                      shadow_intensity: str = shadow_intensity,
+                                      plot_width_percent: str = plot_width_percent,
+                                      note: str = None,
+                                      note_font_size: int = 13) -> str:
         """
         This function takes the generated Plotly HTML content and wraps it with a custom
         HTML structure that includes a container just below the plot with a copyable sequence id.
@@ -410,26 +421,36 @@ def main():
             str: The modified HTML content with the custom wrapper applied.
         """
         
-        custom_wrapper = f"""
+        custom_wrapper = textwrap.dedent(f"""
             <!DOCTYPE html>
             <html>
             <head>
                 <style>
                     body {{ 
-                        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica; 
+                        font-family: Arial, sans-serif;
                         margin: 0; 
                         padding: 10px; 
-                        background: #f4f4f7; 
+                        background: {body_background_color}; 
                         display: flex;
                         flex-direction: column;
                         min-height: 100vh;
                     }}
                     
-                    .plotly-container {{
-                        width: 98%;
+                    .plotly-shell {{
+                        width: {plot_width_percent};
                         margin: 0 auto;
+                        background: #ffffff;
+                        padding: 20px;
+                        border-radius: 10px;
+                        box-shadow: {shadow_intensity} {shadow_color};
+                        border: 1px solid #d1d5da;
+                        box-sizing: border-box;
                     }}
 
+                    .plotly-container {{
+                        width: 100%;
+                        margin: 0 auto;
+                    }}
                     #copy-container {{
                         display: flex;
                         align-items: center;
@@ -440,14 +461,14 @@ def main():
                         box-shadow: {shadow_intensity} {shadow_color};
                         margin: 15px auto 5px auto;
                         border: 1px solid #d1d5da;
-                        width: 97%;
+                        width: {plot_width_percent};
                         box-sizing: border-box;
                     }}
 
-                    .label-group {{ 
-                        display: flex; 
-                        align-items: center; 
-                        gap: 15px; 
+                    .label-group {{
+                        display: flex;
+                        align-items: center;
+                        gap: 15px;
                     }}
 
                     span.label-text {{
@@ -458,7 +479,7 @@ def main():
                     }}
 
                     #id-display {{ 
-                        font-family: "SFMono-Regular", Consolas, monospace;
+                        font-family: SFMono-Regular, Consolas, monospace;
                         background: #f0f7ff;
                         color: #0056b3;
                         padding: 6px 14px;
@@ -469,8 +490,10 @@ def main():
                     }}
 
                     #copy-btn {{
-                        padding: 10px 24px;
-                        background: #2ea44f;
+                        width: 100px;
+                        height: 40px;
+                        padding: 10px 10px;
+                        background: #719465;
                         color: white;
                         border: 1px solid rgba(27,31,35,.15);
                         border-radius: 6px;
@@ -479,14 +502,17 @@ def main():
                         transition: 0.2s;
                     }}
 
-                    #copy-btn:hover {{ background: #2c974b; }}
-                    #copy-btn.success {{ background: #0969da; }}
+                    #copy-btn:hover {{ background: #618057; }}
+                    #copy-btn.success {{ background: #175599; }}
                 </style>
             </head>
             <body>
 
-            <div class="plotly-container">
-                {html_content}
+            <div class="plotly-shell" style="text-align: right;">
+                <div class="plotly-container">
+                    {html_content}
+                </div>
+                <p style="font-size: {note_font_size}px; font-style: italic;">{'* ' + note if note else ''}</p>
             </div>
 
             <div id="copy-container">
@@ -529,16 +555,11 @@ def main():
                         let label = menu.buttons[activeIndex].label;
                         
                         if (label) {{
-                            // REGEX EXPLANATION:
-                            // ^\s* -> Start of string + any whitespace
-                            // \d+           -> One or more digits (1, 2, 10, etc.)
-                            // [\)\.\s\-]* -> Followed by ) or . or space or - (optional)
-                            // \s* -> More whitespace
-                            const cleanedLabel = label.replace(/^\s*\d+[\)\.\s\-]*\s*/, "");
+                            const cleanedLabel = label.replace(/^\d+\)\s/, "");
                             display.innerText = cleanedLabel;
                         }}
                     }} catch (e) {{
-                        console.log("Sync error");
+                        console.log("Copyable sequence ID sync error.");
                     }}
                 }};
 
@@ -553,8 +574,8 @@ def main():
             window.addEventListener('load', initializeWatcher);
             </script>
             </body>
-            </html>
-            """
+            </html>"""
+        )
         
         return custom_wrapper
 
@@ -594,115 +615,8 @@ def main():
         return html_content
 
 
-    def add_custom_styles_to_HTML(html_content: str, 
-                                shadow_color: str = shadow_color, 
-                                shadow_intensity: str = shadow_intensity, 
-                                background_color: str = '#e0e0e0') -> str:
-        """
-        Adds custom CSS styles to the HTML report to set a white background for the plot area
-        and another color background for the main body. Allows customization of shadow and background color.
-        
-        Args:
-            file_path: Path to the HTML file to be modified.
-            shadow_color: Color of the shadow around the plot area.
-            shadow_intensity: Intensity of the shadow (e.g., '4px 4px 8px').
-            background_color: Background color of the main body.
-        
-        Returns:
-            The modified HTML content string.
-        """
-        
-        # Define the custom CSS styles with parameters
-        custom_styles = f"""
-        <style>
-            body {{
-                background-color: {background_color}; /* Subtle gray background */
-                margin: 0;
-                padding: 20px;
-                font-family: Arial, sans-serif;
-            }}
-            .plot-container {{
-                background-color: white; /* White background for the plot area */
-                padding: 20px;
-                border-radius: 8px;
-                box-shadow: {shadow_intensity} {shadow_color};
-            }}
-        </style>
-        """
-
-        # Find the <head> tag and insert the custom styles
-        head_start = html_content.find('<head>')
-        head_end = html_content.find('</head>')
-
-        if head_start == -1:
-            # If there's no <head> tag, create one
-            html_content = f"<head>{custom_styles}</head>{html_content}"
-        else:
-            # Insert the custom styles within the <head> tag
-            html_content = html_content[:head_end] + custom_styles + html_content[head_end:]
-
-        # Find the <div> tag that contains the plot and wrap it with a container
-        plot_div_start = html_content.find('<div id="plotly-graph-')
-        plot_div_end = html_content.find('</div>', plot_div_start)
-
-        if plot_div_start != -1 and plot_div_end != -1:
-            plot_div = html_content[plot_div_start:plot_div_end + len('</div>')]
-            plot_container = f'<div class="plot-container">{plot_div}</div>'
-            html_content = html_content[:plot_div_start] + plot_container + html_content[plot_div_end + len('</div>'):]
-        
-        return html_content
-
-
-    def disable_plotly_doubleclick_tip(html_content: str) -> str:
-        """
-        Modifies a Plotly HTML report string to. Disable double-click interactions entirely,
-        and alter the tooltip to suggest use of the autoscale button.
-        
-        Args:
-            html_content (str): The full HTML content of the report.
-            
-        Returns:
-            str: The modified HTML content.
-        """
-        
-        # We create a shim that intercepts Plotly.newPlot.
-        # It modifies the 'config' object before the plot is created.
-        # config.doubleClick = false  -> Disables double-click zoom reset
-        # config.showTips = false     -> Disables the "Double-click to zoom..." pop-up
-        js_shim = """
-        ;(function() {
-            if (typeof Plotly === 'undefined') return;
-            
-            var originalNewPlot = Plotly.newPlot;
-            Plotly.newPlot = function(gd, data, layout, config) {
-                config = config || {};
-                
-                // Disable double-click behavior entirely
-                config.doubleClick = false;
-                
-                return originalNewPlot(gd, data, layout, config);
-            };
-        })();
-        """
-        
-        # Use rfind to locate the 'Plotly.newPlot(' call at the end of the file
-        # to avoid modifying the library definition itself.
-        target_string = "Plotly.newPlot("
-        insert_index = html_content.rfind(target_string)
-        
-        # Ensure the call ws found and it's not the library definition (too early in file)
-        if insert_index == -1 or insert_index < len(html_content) * 0.1:
-            return html_content
-        
-        # Inject the shim immediately before the Plotly.newPlot(...) call and change the tooltip
-        modified_content = html_content[:insert_index] + js_shim + "\n" + html_content[insert_index:]
-        modified_content = modified_content.replace("Double-click to zoom back out", "Click 'autoscale' to reset view")
-        
-        return modified_content
-
-
     def inject_base64_favicon(html_content: str, 
-                            png_path: str) -> str:
+                              png_path: str) -> str:
         """
         Adds an embedded (base64 string) favicon to the head of the HTML report next to the tile
         """
@@ -724,6 +638,18 @@ def main():
             modified_html = f'<head>\n    {favicon_link}\n</head>\n{html_content}'
         
         return modified_html
+ 
+
+    def cleanup_HTML(html_content: str,
+                     indent_spaces: int = 4) -> str:
+        """
+        Wrapper that uses BeautifulSoup to improve whitespace/indent/readability of HTML content
+        """
+        
+        raw = BeautifulSoup(html_content, 'html.parser')
+        formatter = HTMLFormatter(indent=indent_spaces)
+        improved = raw.prettify(formatter=formatter)
+        return improved
 
 
     def update_HTML(html_content: str,
@@ -741,7 +667,7 @@ def main():
         # Write the modified HTML content back to the file
         try:
             with open(save_path, 'w', encoding='utf-8') as file:
-                file.write(html_content)
+                file.write(cleanup_HTML(html_content))
             if verbose:
                 print(Fore.GREEN + f"Custom styles and modifications added successfully to '{save_path}'.")
         except Exception as e:
@@ -826,7 +752,8 @@ def main():
             temp_fig = create_feature_lane_plot(get_coords(predicted_exons), 
                                                 seq_id=seq_id,
                                                 seq_length=seq_length, 
-                                                truth_features=truth_dict)
+                                                truth_features=truth_dict,
+                                                add_note=True)
             
             
             ## UPDATE THE MAIN FIGURE WITH TRACES FROM THIS SEQUENCE
@@ -861,6 +788,8 @@ def main():
                                         "title.text": current_title_text,
                                         "shapes": current_shapes,
                                         "xaxis.range": current_xaxis_range, 
+                                        "xaxis.minallowed": current_xaxis_range[0],
+                                        "xaxis.maxallowed": current_xaxis_range[1],
                                         "xaxis.autorange": True
                                     }
                                 ],
@@ -915,23 +844,23 @@ def main():
         for trace, visible in zip(final_fig.data, initial_visibility):
             trace.visible = visible
         
-        # Removes buttons that do not work in the context of the dropdown and makes remaining ones visible by default
-        # This prevents users from accidentally reverting to the view inherited from the first set of traces/plot.
-        # Users should simply re-select the dropdown item to reset the view or use autoscale (four arrows icon in the upper right).
+        # Removes buttons that do not work in the context of this HTML report/dropdown and makes remaining ones visible by default
+        # This prevents users from accidentally reverting to the view inherited from the first trace/plot for an incompatible set of features.
         plot_config = {'displaylogo': False, 
-                    'modeBarButtonsToRemove': ['resetScale2d', 'lasso2d', 'select2d', 'zoomIn2d', 'zoomOut2d', 'pan2d'],
-                    'displayModeBar': True}
+                       'modeBarButtonsToRemove': ['resetScale2d', 'lasso2d', 'select2d', 'zoomIn2d', 'zoomOut2d'], # 'pan2d'
+                       'displayModeBar': True,
+                       'doubleClick': 'autosize',
+                       'showTips' : True}
         
         # Write the HTML report and make some style and function modifications to the page after-the-fact
+        # This is a little bit hacky, but some non-Plotly-controlled page formatting changes can be easily applied this way
         if not quiet:
             print(Fore.MAGENTA + "Saving HTML report...")
         plotly_html = pio.to_html(final_fig, config=plot_config, full_html=False, include_plotlyjs='cdn')
         update_HTML(html_content = plotly_html,
                     save_path = output_path, 
-                    function_calls_list = [(apply_copyable_seq_id_wrapper, {}),
+                    function_calls_list = [ (apply_copyable_seq_id_wrapper, {'note' : 'Attempting to pan past the sequence boundaries looks glitchy but updates correctly after mouse release. Most exons require zooming to be visible for sequences approaching ≥ 1Mbp in length.'}),
                                             (add_update_HTML_title, {'new_title' : "HEX-finder: Predictions Report"}),
-                                            (add_custom_styles_to_HTML, {}),
-                                            (disable_plotly_doubleclick_tip, {}),
                                             (inject_base64_favicon, {'png_path' : favicon_path})])
         
         # Notify user how many sequences were skipped due to no features (truth or predicted) for display

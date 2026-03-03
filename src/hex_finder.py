@@ -357,6 +357,7 @@ def main ():
                     attribute_string = attribute_string + f';SEQUENCE_LENGTH={sequence_length}'
                 newlines.append(f'{sequence_id}\t{source}\t{feature_type}\t{feature[0]}\t{feature[1]}\t{round(feature[2], 2)}\t.\t.\t{attribute_string}\n')
         else:
+            # TODO: Make this robust/automatically compatible with corresponding logic in visualize_predictions.py
             newlines.append(f'HEX-finder made no exon predictions for sequence {sequence_id} of length {sequence_length} bp.')
         
         with open(gff_path, mode='w') as file:
