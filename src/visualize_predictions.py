@@ -13,7 +13,8 @@
 
 # TODO: Plot customization?
 # TODO: Add an additional profile visualization script that can be used if structural profiles are saved/available?
-# TODO: Double-click tooltip still comes up in final report after first zoom on another Linux system (even after Plotly version lock)
+# TODO: Partial match appears in legend even when none are displayed, which implies some aren't displayed or the plotting algorithm at least temporarily decides there are partial matches (either way this needs to be addressed)
+# TODO: eliminate dependency on external Plotly javascript (embed and provide user a way to verify against original hosted source)
 
 
 def main():
@@ -82,7 +83,8 @@ def main():
     shadow_intensity = '4px 4px 8px'
     plot_width_percent = "98%" # How much of the HTML page width does the plot occupy?
     body_background_color = '#e0e0e0'
-
+    font_scaler = 1.2
+    dropdown_font_size=int(14*font_scaler)
 
 
     ### FUNCTION DEFINITIONS
@@ -141,13 +143,14 @@ def main():
                                 add_note=False,
                                 xaxis_label="Position in sequence (bp)",
                                 font_family="Arial",
-                                title_font_size=24,
+                                title_font_size=int(24*font_scaler),
                                 title_bold=True,
-                                label_font_size=18,
+                                label_font_size=int(18*font_scaler),
                                 label_bold=False,
-                                tick_font_size=14,
+                                tick_font_size=int(15*font_scaler),
                                 tick_bold=False,
                                 # Legend Options
+                                legend_font_size=int(13*font_scaler),
                                 margin_label="No predictions attempted here",
                                 match_label="Exact match",
                                 no_match_label="False positive"):
@@ -325,7 +328,8 @@ def main():
                 yanchor="top",
                 y=1,
                 xanchor="left",
-                x=1.02 # Just outside the plot area
+                x=1.02, # Just outside the plot area
+                font=dict(size=legend_font_size)
             )
         )
         
@@ -361,7 +365,7 @@ def main():
                 hoverinfo='none'
             ))
         
-        # Add shading for partial matches (Orange)
+        # Add shading for create_feature_lane_plotes (Orange)
         if partial_matches:
             for pos in partial_matches:
                 # Only draw orange line if this position isn't part of an exact match
@@ -405,7 +409,8 @@ def main():
                                       shadow_intensity: str = shadow_intensity,
                                       plot_width_percent: str = plot_width_percent,
                                       note: str = None,
-                                      note_font_size: int = 13) -> str:
+                                      note_font_size: int = int(13*font_scaler),
+                                      font_scaler: float = font_scaler) -> str:
         """
         This function takes the generated Plotly HTML content and wraps it with a custom
         HTML structure that includes a container just below the plot with a copyable sequence id.
@@ -473,7 +478,7 @@ def main():
 
                     span.label-text {{
                         color: #444;
-                        font-size: 13px;
+                        font-size: {int(13*font_scaler)}px;
                         text-transform: uppercase;
                         font-weight: 700;
                     }}
@@ -486,7 +491,7 @@ def main():
                         border-radius: 6px;
                         font-weight: 600;
                         border: 1px solid #b2d4ff;
-                        font-size: 16px;
+                        font-size: {int(16*font_scaler)}px;
                     }}
 
                     #copy-btn {{
@@ -827,7 +832,8 @@ def main():
                                             x=0.0, # Left aligned with the axis
                                             xanchor="left",
                                             y=1.35, # Positioned above plot but below title
-                                            yanchor="top"
+                                            yanchor="top",
+                                            font=dict(size=dropdown_font_size, weight='bold')
                                         )
                                     ],
                                     # Add Top Margin (t) to make space for Title + Dropdown
@@ -859,7 +865,7 @@ def main():
         plotly_html = pio.to_html(final_fig, config=plot_config, full_html=False, include_plotlyjs='cdn')
         update_HTML(html_content = plotly_html,
                     save_path = output_path, 
-                    function_calls_list = [ (apply_copyable_seq_id_wrapper, {'note' : 'Attempting to pan past the sequence boundaries looks glitchy but updates correctly after mouse release. Most exons require zooming to be visible for sequences approaching ≥ 1Mbp in length.'}),
+                    function_calls_list = [ (apply_copyable_seq_id_wrapper, {'note' : 'Attempting to pan past the sequence boundaries looks glitchy but updates correctly after mouse release. Most exons require zooming to be visible for sequences approaching ≥ 1 Mbp in length.'}),
                                             (add_update_HTML_title, {'new_title' : "HEX-finder: Predictions Report"}),
                                             (inject_base64_favicon, {'png_path' : favicon_path})])
         
