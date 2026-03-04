@@ -13,7 +13,7 @@
 
 # TODO: Plot customization?
 # TODO: Add an additional profile visualization script that can be used if structural profiles are saved/available?
-# TODO: reduce the file size of the favicon, it's currently unnecessarily large
+
 
 
 def main():
