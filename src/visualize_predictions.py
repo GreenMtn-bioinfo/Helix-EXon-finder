@@ -13,8 +13,7 @@
 
 # TODO: Plot customization?
 # TODO: Add an additional profile visualization script that can be used if structural profiles are saved/available?
-# TODO: Partial match appears in legend even when none are displayed, which implies some aren't displayed or the plotting algorithm at least temporarily decides there are partial matches (either way this needs to be addressed)
-# TODO: eliminate dependency on external Plotly javascript (embed and provide user a way to verify against original hosted source)
+# TODO: reduce the file size of the favicon, it's currently unnecessarily large
 
 
 def main():
@@ -41,6 +40,8 @@ def main():
                         help="If specified, sequences for which both HEX-finder and the reference source had no exon features will not be included in the report (by default these are still plotted/included, but blank).")
     parser.add_argument('-v', '--verbose', action='store_false',
                         help='If specified, enables more status updates to be printed to the console (off by default). Strongly recommended to leave as default if HEX-finder has made predictions for many sequences.')
+    parser.add_argument('-js', '--javascript_included', action='store_true',
+                        help="If specified, Plotly's JavaScript source code is baked into the HTML report, ensuring full offline functionality. This increases the report size from ~1 Mb to ~5 Mb.")
     args = parser.parse_args()
 
     if '--help' in sys.argv or '-h' in sys.argv:
@@ -54,7 +55,8 @@ def main():
     truth_source_name = args.truth_source_name
     quiet = args.verbose
     skip_empty = args.skip_empty
-
+    include_javascript = args.javascript_included if args.javascript_included else 'cdn'
+    
 
 
     ### IMPORT MODULES AND PROCEED (ONLY IF HELP WAS NOT CALLED)
@@ -140,6 +142,7 @@ def main():
                                 shade_margin: int = int(26/2 + 76/2),
                                 # Customization Options
                                 plot_title=None,
+                                plot_height=400,
                                 add_note=False,
                                 xaxis_label="Position in sequence (bp)",
                                 font_family="Arial",
@@ -192,6 +195,7 @@ def main():
         current_tick_text = [lane_name]
         exact_matches = [] 
         partial_matches = [] 
+        partial_drawn = False
         no_matches = [] 
         
         if truth_features is not None:
@@ -320,7 +324,7 @@ def main():
                 fixedrange=True
             ),
             plot_bgcolor='white',
-            height=400, 
+            height=plot_height, 
             showlegend=True, 
             # Legend moved to the right-hand side
             legend=dict(
@@ -371,13 +375,15 @@ def main():
                 # Only draw orange line if this position isn't part of an exact match
                 if not (truth_set_flattened[pos] in exact_matches):
                     fig.add_vline(x=pos, line_width=1, line_dash="solid", line_color="orange")
+                    partial_drawn = True
             
-            fig.add_trace(go.Scatter(
-                x=[None], y=[None],
-                mode='lines',
-                line=dict(color="orange", width=1),
-                name="Partial match",
-                hoverinfo='none'
+            if partial_drawn:
+                fig.add_trace(go.Scatter(
+                    x=[None], y=[None],
+                    mode='lines',
+                    line=dict(color="orange", width=1),
+                    name="Partial match",
+                    hoverinfo='none'
             ))
         
         # Add shading for margins
@@ -862,7 +868,7 @@ def main():
         # This is a little bit hacky, but some non-Plotly-controlled page formatting changes can be easily applied this way
         if not quiet:
             print(Fore.MAGENTA + "Saving HTML report...")
-        plotly_html = pio.to_html(final_fig, config=plot_config, full_html=False, include_plotlyjs='cdn')
+        plotly_html = pio.to_html(final_fig, config=plot_config, full_html=False, include_plotlyjs=include_javascript)
         update_HTML(html_content = plotly_html,
                     save_path = output_path, 
                     function_calls_list = [ (apply_copyable_seq_id_wrapper, {'note' : 'Attempting to pan past the sequence boundaries looks glitchy but updates correctly after mouse release. Most exons require zooming to be visible for sequences approaching ≥ 1 Mbp in length.'}),
