@@ -32,16 +32,16 @@ def main():
                         help=f"Path to a single GFF file containing the local 1-based coordinates (wrt sequence start) of known reference features for all of the sequences of interest. Sequence IDs in the GFF must match those pulled by HEX-finder from the FASTA headers. See the GFFs provided in '{shorten_path(DEMO_SEQS_DIR, 1)}' for valid formatting. While not necessary, the 9th column (i.e. attributes field) can contain annotation used to label individual reference features (see <feature_attribute_name>). If left unspecified, only the HEX-finder predictions will be plotted.")
     parser.add_argument('-tl','--truth_labels_attribute', type=str, default=None, metavar='<feature_attribute_name>',
                         help=f"Name of the attribute in the attributes field/column of the truth GFF from which to pull individual feature labels (see <path_to_local_coords_GFF> above). Attributes field must use ';' for attribute separation and '=' for attribute assignment. See the GFFs provided in '{shorten_path(DEMO_SEQS_DIR, 1)}' for valid examples. For RefSeq annotation, 'gene' will label each feature with its HUGO gene symbol. If left unspecified, each reference feature will simply be labeled as what is provided for <reference_features_source>.")
-    parser.add_argument('-ts','--truth_source_name', type=str, default=None, metavar='<reference_features_source>',
+    parser.add_argument('-tn','--truth_source_name', type=str, default=None, metavar='<reference_features_source>',
                         help="Name of the source of reference annotation HEX-finder is being compared to (for the axis labels/legend, e.g. 'BestRefSeq'). If unspecified, the script attempts to pull this from the 'source' field of the GFF file of truth_features (if provided and non-empty). If a homogenous source name is not found in that file, the label defaults to 'Reference'.")
     parser.add_argument('-o','--output_path', type=str, default=VISUAL_PREDICTIONS, metavar='<output_HTML_path>',
                         help=f"Path to write the final HTML report to (the default is '{shorten_path(VISUAL_PREDICTIONS, 2)}').")
     parser.add_argument('-se','--skip_empty', action='store_true',
-                        help="If specified, sequences for which both HEX-finder and the reference source had no exon features will not be included in the report (by default these are still plotted/included, but blank).")
+                        help="If specified, sequences for which both HEX-finder and the reference/truth source had no exon features will not be included in the report. By default, these sequences are still plotted/included but are blank).")
     parser.add_argument('-v', '--verbose', action='store_false',
-                        help='If specified, enables more status updates to be printed to the console (off by default). Strongly recommended to leave as default if HEX-finder has made predictions for many sequences.')
+                        help='If specified, enables more status updates to be printed to the console (off by default). Strongly recommended to leave this unspecified if HEX-finder has made predictions for many sequences.')
     parser.add_argument('-js', '--javascript_included', action='store_true',
-                        help="If specified, Plotly's JavaScript source code is baked into the HTML report, ensuring full offline functionality. This increases the report size from ~1 Mb to ~5 Mb.")
+                        help="If specified, Plotly's JavaScript source code is baked into the HTML report. This ensures fully functional plots when there is no internet connection. This increases the report size from <100 Kb to ~4.5 Mb.")
     args = parser.parse_args()
 
     if '--help' in sys.argv or '-h' in sys.argv:
@@ -103,7 +103,7 @@ def main():
         parse_attributes = lambda attributes: {attr.split(annot_assign)[0] : attr.split(annot_assign)[1] if len(attributes) > 1 else None for attr in attributes.split(annot_delim)}
         
         # Used to find info from GFFs where HEX-finder made no predictions
-        expr = re.compile(r'(sequence\s)(.*)(\sof)(\slength\s)(\d*)\sbp.')
+        expr = re.compile(r'(sequence\s)(.*)(\sof)(\slength\s)(\d*)\sbp.') # TODO: make this not hard-coded, i.e. it should originate from the same adjustable source as what HEX-finder will write
         
         # Iterate through each line in from the GFF, handling the tab delimited fields (depending on whether they were generate by HEX-finder or not)
         feature_lines = import_gff(gff_path)
@@ -415,7 +415,7 @@ def main():
                                       shadow_intensity: str = shadow_intensity,
                                       plot_width_percent: str = plot_width_percent,
                                       note: str = None,
-                                      note_font_size: int = int(13*font_scaler),
+                                      note_font_size: int = int(12*font_scaler),
                                       font_scaler: float = font_scaler) -> str:
         """
         This function takes the generated Plotly HTML content and wraps it with a custom
@@ -492,7 +492,7 @@ def main():
                     #id-display {{ 
                         font-family: SFMono-Regular, Consolas, monospace;
                         background: #f0f7ff;
-                        color: #0056b3;
+                        color: #175599;
                         padding: 6px 14px;
                         border-radius: 6px;
                         font-weight: 600;
@@ -528,7 +528,7 @@ def main():
 
             <div id="copy-container">
                 <div class="label-group">
-                    <span class="label-text">Sequence ID:</span>
+                    <span class="label-text">Current Sequence ID:</span>
                     <span id="id-display">Detecting...</span>
                 </div>
                 <button id="copy-btn" onclick="copyId()">Copy ID</button>
@@ -630,6 +630,7 @@ def main():
                               png_path: str) -> str:
         """
         Adds an embedded (base64 string) favicon to the head of the HTML report next to the tile
+        and makes a head to put this in if none already exists.
         """
         
         # Read the PNG file and encode it to base64
@@ -639,17 +640,56 @@ def main():
         # Create the favicon link tag with the base64 encoded image
         favicon_link = f'<link rel="icon" type="image/png" href="data:image/png;base64,{base64_encoded_image}" />'
         
-        # Find the <head> section and insert the favicon link
-        head_match = re.search(r'(<head.*?>)', html_content, re.IGNORECASE)
-        if head_match:
-            head_start = head_match.group(1)
-            modified_html = html_content.replace(head_start, f'{head_start}\n    {favicon_link}')
+        # Parse the HTML content with BeautifulSoup
+        soup = BeautifulSoup(html_content, 'html.parser')
+
+        # Find the <head> tag and insert favicon string, else make one and insert
+        head_tag = soup.find('head')
+        if head_tag:
+            head_tag.insert(0, BeautifulSoup(favicon_link, 'html.parser'))
         else:
-            # If <head> tag is not found, prepend the favicon link to the HTML content
-            modified_html = f'<head>\n    {favicon_link}\n</head>\n{html_content}'
+            new_head_tag = soup.new_tag('head')
+            new_head_tag.append(BeautifulSoup(favicon_link, 'html.parser'))
+            soup.insert(0, new_head_tag)
+
+        return str(soup)
+    
+
+    def modify_plotly_graph_div(html_content: str,
+                                class_name: str = "plotly-graph-div",
+                                height_added: int = 25) -> str:
+        """
+        Finds the Plotly plot <div> in the HTML report string and modifies the height parameter
+        to add margin between x-axis label and plot note (if any). Modifying the source of this
+        height parameter on the Plotly/Python end simply increase the plot height. This function
+        only increases the container/div height without changing the Plotly plot height.
+        """
         
-        return modified_html
- 
+        # Parse the HTML content
+        soup = BeautifulSoup(html_content, 'html.parser')
+        
+        # Find the specific div by its class
+        div = soup.find('div', class_=class_name)
+        
+        if div:
+            # Extract and split the style attribute
+            style = div.get('style', '')
+            style_parts = style.split(';')
+            
+            # Find the height part and adjust it
+            for i, part in enumerate(style_parts):
+                if 'height:' in part:
+                    current_height = int(part.split(':')[1].replace('px', ''))
+                    new_height = current_height + height_added
+                    style_parts[i] = f'height:{new_height}px'
+            
+            # Join the style parts back together and update the style
+            new_style = ';'.join(style_parts)
+            div['style'] = new_style
+        
+        # Return the modified HTML content
+        return str(soup)
+    
 
     def cleanup_HTML(html_content: str,
                      indent_spaces: int = 4) -> str:
@@ -871,8 +911,9 @@ def main():
         plotly_html = pio.to_html(final_fig, config=plot_config, full_html=False, include_plotlyjs=include_javascript)
         update_HTML(html_content = plotly_html,
                     save_path = output_path, 
-                    function_calls_list = [ (apply_copyable_seq_id_wrapper, {'note' : 'Attempting to pan past the sequence boundaries looks glitchy but updates correctly after mouse release. Most exons require zooming to be visible for sequences approaching ≥ 1 Mbp in length.'}),
+                    function_calls_list = [ (apply_copyable_seq_id_wrapper, {'note' : 'Attempting to pan past the sequence boundaries forces a zoom instead, which looks glitchy but updates correctly after mouse release. Most exons require zooming to be visible for sequences approaching ≥ 500 Kbp in length.'}),
                                             (add_update_HTML_title, {'new_title' : "HEX-finder: Predictions Report"}),
+                                            (modify_plotly_graph_div, {'height_added' : 25}),
                                             (inject_base64_favicon, {'png_path' : favicon_path})])
         
         # Notify user how many sequences were skipped due to no features (truth or predicted) for display
