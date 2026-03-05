@@ -15,11 +15,37 @@
 #TODO: Add a structural profile visualization script?
 
 
+# This block keeps expectations aligned between HEX-finder and visualize_predictions.py for sequences with no predictions.
+# No matter what changes are made to NO_PREDICTIONS_TEMPLATE, there must always be a 'sequence_id' and 'sequence_length' field
+# However, where those appear in the string or what other fields are specified in the template does not matter
+
+NO_PREDICTIONS_TEMPLATE = "HEX-finder made no exon predictions for sequence {sequence_id} of length {sequence_length} bp."
+
+def parse_template(template: str) -> tuple:
+    """
+    Finds all variable names in the template string, creates a regex pattern that captures the variables,
+    and then creates a dictionary mapping variable names to group numbers (returns pattern and dict)
+    """
+    
+    import re
+
+    variable_names = re.findall(r'\{(\w+)\}', template)
+    pattern = re.escape(template)
+    for variable_name in variable_names:
+        pattern = pattern.replace( '\{' + variable_name + '\}' , '(.+)')
+    group_dict = {name: i+1 for i, name in enumerate(variable_names)}
+    
+    return re.compile(pattern), group_dict
+
+NO_PREDICTIONS_PATTERN, NO_PREDICTIONS_GROUPS = parse_template(NO_PREDICTIONS_TEMPLATE)
+
+
+
 def main ():
     
     import argparse
     import sys
-    from .paths import MODELS_DIR, PROFILES_DIR, PREDICTIONS_DIR, NORM_DATA_PATHS, EXON_LENGTHS_DIST, shorten_path
+    from .paths import MODELS_DIR, PROFILES_DIR, PREDICTIONS_DIR, NORM_DATA_PATHS, EXON_LENGTHS_DIST, NO_PREDICTIONS_LOG, shorten_path
     
 
     
@@ -76,6 +102,7 @@ def main ():
     profiles_dir = PROFILES_DIR
     predictions_dir = PREDICTIONS_DIR
     norm_data_path = NORM_DATA_PATHS
+    no_predictions_log = NO_PREDICTIONS_LOG
 
     # Import exon length distribution data for exon-level prediction re-ranking
     length_dist = pd.read_csv(EXON_LENGTHS_DIST)
@@ -357,8 +384,13 @@ def main ():
                     attribute_string = attribute_string + f';SEQUENCE_LENGTH={sequence_length}'
                 newlines.append(f'{sequence_id}\t{source}\t{feature_type}\t{feature[0]}\t{feature[1]}\t{round(feature[2], 2)}\t.\t.\t{attribute_string}\n')
         else:
-            # TODO: Make this more robust/automatically compatible with corresponding logic in visualize_predictions.py
-            newlines.append(f'HEX-finder made no exon predictions for sequence {sequence_id} of length {sequence_length} bp.')
+            # Use the generic template defined at the top, so visualize_predictions.py knows how to look to see if none were made.
+            this_seq_specifics = {'sequence_id' : sequence_id, 'sequence_length' : sequence_length}
+            newlines.append(NO_PREDICTIONS_TEMPLATE.format(**this_seq_specifics))
+            
+            # Log the seq_id of the sequence for which no predictions were made
+            with open(no_predictions_log, mode = 'a') as log_file:
+                log_file.writelines([f'{sequence_id}\n'])
         
         with open(gff_path, mode='w') as file:
             file.writelines(newlines)

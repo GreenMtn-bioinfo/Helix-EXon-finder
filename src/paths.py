@@ -44,6 +44,7 @@ NORM_DATA_PATHS = [NORM_DIR / 'z_norm_training_means.npy',
                    NORM_DIR / 'min_training_post_z.npy', 
                    NORM_DIR / 'max_training_post_z.npy']
 EXON_LENGTHS_DIST = DATA_DIR / 'human_exon_length_distribution_Mokry_et_al_2010.csv'
+NO_PREDICTIONS_LOG = PREDICTIONS_DIR / 'no_predictions_log.txt'
 
 # Used by profile_generator_inference.py
 SKIPPED_LOG_NAME = "skipped_sequences_log.txt"

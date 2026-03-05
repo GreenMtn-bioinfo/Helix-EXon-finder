@@ -71,6 +71,7 @@ def main():
     import shutil
     import plotly.graph_objects as go
     import plotly.io as pio
+    from .hex_finder import NO_PREDICTIONS_PATTERN, NO_PREDICTIONS_GROUPS
     from colorama import Fore, init
     init(autoreset=True)
 
@@ -92,6 +93,8 @@ def main():
     ### FUNCTION DEFINITIONS
 
     def parse_gff(gff_path: str,
+                  no_pred_expr: re.Pattern = NO_PREDICTIONS_PATTERN,
+                  no_pred_groups: dict = NO_PREDICTIONS_GROUPS,
                   annot_delim: str = ";",
                   annot_assign: str = "=") -> list:
         """
@@ -102,20 +105,15 @@ def main():
         # Used in the loop below to retrieve/parse annotation from the attributes field of the GFF into a dictionary
         parse_attributes = lambda attributes: {attr.split(annot_assign)[0] : attr.split(annot_assign)[1] if len(attributes) > 1 else None for attr in attributes.split(annot_delim)}
         
-        # Used to find info from GFFs where HEX-finder made no predictions
-        expr = re.compile(r'(sequence\s)(.*)(\sof)(\slength\s)(\d*)\sbp.') # TODO: make this not hard-coded, i.e. it should originate from the same adjustable source as what HEX-finder will write
-        
         # Iterate through each line in from the GFF, handling the tab delimited fields (depending on whether they were generate by HEX-finder or not)
         feature_lines = import_gff(gff_path)
         exons = []
         if feature_lines:
-            if 'HEX-finder made no exon predictions for ' in feature_lines[0][0]:
-                msg = feature_lines[0][0].replace('HEX-finder made no exon predictions for ', '')
-                match = expr.match(msg)
-                if match:
-                    seq_id = match.group(2)
-                    seq_length = int(match.group(5))
-                    return seq_id, None, None, seq_length, exons
+            match = re.match(no_pred_expr, feature_lines[0][0])
+            if match:
+                seq_id = match.group(no_pred_groups['sequence_id'])
+                seq_length = int(match.group(no_pred_groups['sequence_length']))
+                return seq_id, None, None, seq_length, exons
             else:
                 for i, line in enumerate(feature_lines):
                     annotation = parse_attributes(line[8])
