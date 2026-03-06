@@ -1,6 +1,3 @@
-
-
-
 ### This is simple command line tool that retrieves sequences and relevant truth features from GRCh38.p14 in order to try HEX-finder.
 ### The user can provide their own coordinates to use, or sequences can be randomly sampled from the held-out regions.
 ### Warnings will be issued if the user provides coordinates that fall within the training regions of the genome (see ../data/held_out_regions_GRCh38_p14.txt).
@@ -12,45 +9,16 @@
 
 
 
-def main():
+import argparse
+from .paths import DEMO_SEQS_DIR, REFERENCE_DIR, FIG_11_DEMO, EXAMPLE_DIST, HELD_OUT, GENOME_FETCHER, shorten_path
+
+
+
+def main(args):
     
-    import argparse
     import sys
-    from .paths import DEMO_SEQS_DIR, REFERENCE_DIR, HELD_OUT, FIG_11_DEMO, EXAMPLE_DIST, GENOME_FETCHER, shorten_path
     
-    
-    
-    ### PARSE USER ARGUMENTS PROVIDED AT THE COMMAND LINE 
-    #TODO: Improve formatting of this help description string
-    parser = argparse.ArgumentParser(description="Facilitates retrieving sequences and reference features from GRCh38.p14 in order to try out HEX-finder's exon prediction capabilities. It will fetch the required reference genome if none is present or provided (see <reference_genome_directory>). This tool has two mutually exclusive use cases: 1) The user provides a path to a file of genomic coordinates (see <coordinates_file>) and sequences plus annotation are prepared for that set. 2) The user provides an integer (see <number_to_sample>), as well as a file with the allowed sequence lengths (see <lengths_distribution_file>), for random sampling. Coordinates from within the genomic regions withheld from the models' training set are first randomly sampled, and then the corresponding sequences and reference features are prepared. In either use case, reference exons within the sequences/coordinates of interest are retrieved and converted into local, 1-based coordinates (wrt to each sequence's start). The resulting GFF can be used with 'visualize_predictions.py' to visually evaluate HEX-finder's predictions directly against RefSeq MANE Select exons as a truth source.")
-
-    # Arguments that apply to either use case
-    parser.add_argument('-q', '--quiet', action='store_true',
-                        help='If specified, prevents non-critical script status updates from being printed to the console.')
-    parser.add_argument('-r','--reference_dir', type=str, default=REFERENCE_DIR, metavar='<reference_genome_directory>',
-                        help=f'Path to a directory including an indexed reference genome file (FNA and FAI) for GRCh38.p14, along with a RefSeq annotation file (GFF). The default is "{shorten_path(REFERENCE_DIR, 2)}". If any of the required files are not found, the user will be prompted to give permission to retrieve and prepare them automatically.')
-
-    # Create a mutually exclusive group for the two use cases
-    use_case = parser.add_mutually_exclusive_group(required=True)
-
-    # OPTION 1: User provides a file with valid genomic coordinates, given the reference genome
-    # user_provides_coords = parser.add_argument_group(title='User provides coordinates for sequence retrieval.')
-    use_case.add_argument('-c','--coordinates', type=str, default=None, metavar='<coordinates_file>',
-                        help=f'Path to a file including one genomic coordinate per line. Coordinate format should be CHROMOSOME:START-END(STRAND_SYMBOL), please see "{shorten_path(FIG_11_DEMO, 2)}" for a valid example.')
-
-    # OPTION 2: User provides a number of coordinates to randomly sample from the held-out region and a file with sequence lengths to draw from
-    use_case.add_argument('-n', '--number', type=int, default=None, metavar='<number_to_sample>',
-                        help='An integer specifying how many coordinates to randomly sample from the regions of GRCh38.p14 that were held-out during model training.')
-    sampling_group = parser.add_argument_group(title='used only when <number_to_sample> is provided')
-    sampling_group.add_argument('-l', '--lengths', type=str, default=None, metavar='<lengths_distribution_file>',
-                                help=f'Path to a file with one sequence length per line (integers). This will be used as the distribution of possible lengths for the random coordinate sampling. Please see or use "{shorten_path(EXAMPLE_DIST, 2)}" as a valid example.')
-    sampling_group.add_argument('-o', '--output', type=str, default=None, metavar='<output_base_name>',
-                                help=f'The base name to use for all output files if random sampling is chosen (defaults to "<number_to_sample>_seqs"). All files will be saved in "{shorten_path(DEMO_SEQS_DIR, 1)}".')
-    sampling_group.add_argument('-s', '--seed', type=int, default=2026, metavar='<seed_integer>',
-                                help='An integer seed to use for the random coordinate sampling (defaults to 2026). Leave this alone for reproducible sampling.')
-
-    # Parse arguments and check if help was called
-    args = parser.parse_args()
+    # Check if help was called
     if '--help' in sys.argv or '-h' in sys.argv:
         sys.exit(0)
 
@@ -496,4 +464,35 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    
+    ### PARSE USER ARGUMENTS PROVIDED AT THE COMMAND LINE 
+    # TODO: Improve formatting of the description string
+    parser = argparse.ArgumentParser(description="Facilitates retrieving sequences and reference features from GRCh38.p14 in order to try out HEX-finder's exon prediction capabilities. It will fetch the required reference genome if none is present or provided (see <reference_genome_directory>). This tool has two mutually exclusive use cases: 1) The user provides a path to a file of genomic coordinates (see <coordinates_file>) and sequences plus annotation are prepared for that set. 2) The user provides an integer (see <number_to_sample>), as well as a file with the allowed sequence lengths (see <lengths_distribution_file>), for random sampling. Coordinates from within the genomic regions withheld from the models' training set are first randomly sampled, and then the corresponding sequences and reference features are prepared. In either use case, reference exons within the sequences/coordinates of interest are retrieved and converted into local, 1-based coordinates (wrt to each sequence's start). The resulting GFF can be used with 'visualize_predictions.py' to visually evaluate HEX-finder's predictions directly against RefSeq MANE Select exons as a truth source.")
+
+    # Arguments that apply to either use case
+    parser.add_argument('-q', '--quiet', action='store_true',
+                        help='If specified, prevents non-critical script status updates from being printed to the console.')
+    parser.add_argument('-r','--reference_dir', type=str, default=REFERENCE_DIR, metavar='<reference_genome_directory>',
+                        help=f'Path to a directory including an indexed reference genome file (FNA and FAI) for GRCh38.p14, along with a RefSeq annotation file (GFF). The default is "{shorten_path(REFERENCE_DIR, 2)}". If any of the required files are not found, the user will be prompted to give permission to retrieve and prepare them automatically.')
+
+    # Create a mutually exclusive group for the two use cases
+    use_case = parser.add_mutually_exclusive_group(required=True)
+
+    # OPTION 1: User provides a file with valid genomic coordinates, given the reference genome
+    # user_provides_coords = parser.add_argument_group(title='User provides coordinates for sequence retrieval.')
+    use_case.add_argument('-c','--coordinates', type=str, default=None, metavar='<coordinates_file>',
+                        help=f'Path to a file including one genomic coordinate per line. Coordinate format should be CHROMOSOME:START-END(STRAND_SYMBOL), please see "{shorten_path(FIG_11_DEMO, 2)}" for a valid example.')
+
+    # OPTION 2: User provides a number of coordinates to randomly sample from the held-out region and a file with sequence lengths to draw from
+    use_case.add_argument('-n', '--number', type=int, default=None, metavar='<number_to_sample>',
+                        help='An integer specifying how many coordinates to randomly sample from the regions of GRCh38.p14 that were held-out during model training.')
+    sampling_group = parser.add_argument_group(title='used only when <number_to_sample> is provided')
+    sampling_group.add_argument('-l', '--lengths', type=str, default=None, metavar='<lengths_distribution_file>',
+                                help=f'Path to a file with one sequence length per line (integers). This will be used as the distribution of possible lengths for the random coordinate sampling. Please see or use "{shorten_path(EXAMPLE_DIST, 2)}" as a valid example.')
+    sampling_group.add_argument('-o', '--output', type=str, default=None, metavar='<output_base_name>',
+                                help=f'The base name to use for all output files if random sampling is chosen (defaults to "<number_to_sample>_seqs"). All files will be saved in "{shorten_path(DEMO_SEQS_DIR, 1)}".')
+    sampling_group.add_argument('-s', '--seed', type=int, default=2026, metavar='<seed_integer>',
+                                help='An integer seed to use for the random coordinate sampling (defaults to 2026). Leave this alone for reproducible sampling.')
+    
+    args = parser.parse_args()
+    main(args)

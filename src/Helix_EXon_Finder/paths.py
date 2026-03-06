@@ -7,7 +7,7 @@ import os
 
 
 ## Get the absolute path to the directory where THIS file lives
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 
 
 ## Important sub-directories relative to root
