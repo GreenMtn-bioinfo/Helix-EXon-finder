@@ -42,6 +42,8 @@ def main():
                         help='If specified, enables more status updates to be printed to the console (off by default). Strongly recommended to leave this unspecified if HEX-finder has made predictions for many sequences.')
     parser.add_argument('-js', '--javascript_included', action='store_true',
                         help="If specified, Plotly's JavaScript source code is baked into the HTML report. This ensures fully functional plots when there is no internet connection. This increases the report size from <100 Kb to ~4.5 Mb.")
+    parser.add_argument('-ac', '--accessibility_colors', action='store_true',
+                        help="If specified, an alternative color palette is used in the report plots that should offer an improvement over the default for those with most forms of color blindness.")
     args = parser.parse_args()
 
     if '--help' in sys.argv or '-h' in sys.argv:
@@ -56,6 +58,7 @@ def main():
     quiet = args.verbose
     skip_empty = args.skip_empty
     include_javascript = args.javascript_included if args.javascript_included else 'cdn'
+    accessibility_colors = args.accessibility_colors
     
 
 
@@ -88,6 +91,37 @@ def main():
     body_background_color = '#e0e0e0'
     font_scaler = 1.2
     dropdown_font_size=int(14*font_scaler)
+    seq_ID_color = "#2a496b" if accessibility_colors else '#175599'
+    
+    # Two color palette for the plot, the default 
+    default_plotly_color_theme = dict(hf_color="royalBlue",
+                                        hf_opacity=1,
+                                        truth_color="black",
+                                        truth_opacity=1,
+                                        fp_color="red",
+                                        fp_opacity=0.5,
+                                        tp_color="green",
+                                        tp_opacity=0.7,
+                                        partial_color="orange",
+                                        partial_line_thickness=1,
+                                        not_covered_color="grey",
+                                        not_covered_opacity=0.27)
+    
+    # And one that works better for those with most forms of color-blindness
+    alt_plotly_color_theme = dict(hf_color= "#A020F0",
+                                  hf_opacity=1,
+                                  truth_color="#000000",
+                                  truth_opacity=1,
+                                  fp_color="#E69F00",
+                                  fp_opacity=0.6,
+                                  tp_color="#009E73",
+                                  tp_opacity=0.8,
+                                  partial_color="#009E73",
+                                  partial_line_thickness=1.5,
+                                  not_covered_color="#808080",
+                                  not_covered_opacity=0.27)
+    
+    plotly_colors = alt_plotly_color_theme if accessibility_colors else default_plotly_color_theme
 
 
     ### FUNCTION DEFINITIONS
@@ -134,7 +168,18 @@ def main():
                                 seq_id,
                                 lane_name="HEX-finder",
                                 y_pos=1,
-                                color="royalBlue",
+                                hf_color="royalBlue",
+                                hf_opacity=1,
+                                truth_color="black",
+                                truth_opacity=1,
+                                fp_color="red",
+                                fp_opacity=0.5,
+                                tp_color="green",
+                                tp_opacity=0.7,
+                                partial_color="orange",
+                                partial_line_thickness=1.5,
+                                not_covered_color="grey",
+                                not_covered_opacity=0.35,
                                 line_thickness=20,
                                 truth_features: dict = None,
                                 shade_margin: int = int(26/2 + 76/2),
@@ -152,7 +197,7 @@ def main():
                                 tick_bold=False,
                                 # Legend Options
                                 legend_font_size=int(13*font_scaler),
-                                margin_label="No predictions attempted here",
+                                margin_label="No predictions made at the ends",
                                 match_label="Exact match",
                                 no_match_label="False positive"):
         """
@@ -161,45 +206,21 @@ def main():
         Truth features (truth_features) support custom labels (e.g. gene symbol from RefSeq) in hover info if provided.
         """
         
+        fig = go.Figure()
         x_vals = []
         y_vals = []
         seq_bounds = (1, seq_length)
         
-        # Process predictions (Standard tuples)
-        if feature_tuples:
-            for start, end in feature_tuples:
-                x_vals.extend([start, end, None])
-                y_vals.extend([y_pos, y_pos, None])
-            
-        fig = go.Figure()
-        
-        # Add the single trace for all predictions
-        fig.add_trace(go.Scatter(
-            x=x_vals,
-            y=y_vals,
-            mode='lines',
-            line=dict(
-                color=color, 
-                width=line_thickness
-            ),
-            name=lane_name,
-            hovertemplate='%{x:,}',
-            opacity=0.8,
-            showlegend=True
-        ))
         
         # Prepare Y-axis tick text list
         current_tick_vals = [y_pos]
         current_tick_text = [lane_name]
-        exact_matches = [] 
-        partial_matches = [] 
-        partial_drawn = False
-        no_matches = [] 
         
+        ## Process truth features if offered
         if truth_features is not None:
             truth_list = truth_features.get('features', [])
             
-            # 1. Prepare Match Sets (Coordinate Only)
+            # Prepare Match Sets (Coordinate Only)
             # We extract only (start, end) for the logic, ignoring the label if present
             truth_coords_only = []
             for item in truth_list:
@@ -208,32 +229,7 @@ def main():
             truth_set = set(truth_coords_only)
             truth_set_flattened = {item : tup for tup in truth_set for item in tup}
             
-            # 2. Check features against truth
-            if feature_tuples:
-                for feat in feature_tuples:
-                    start, end = feat
-                    found_match = False 
-                    
-                    # Check for exact matches
-                    if tuple(feat) in truth_set:
-                        exact_matches.append(feat)
-                        found_match = True
-                    
-                    # Check for partial matches (start)
-                    if start in truth_set_flattened.keys():
-                        partial_matches.append(start)
-                        found_match = True
-                        
-                    # Check for partial matches (end)
-                    if end in truth_set_flattened.keys():
-                        partial_matches.append(end)
-                        found_match = True
-                    
-                    # If no exact or partial match was found, record it
-                    if not found_match:
-                        no_matches.append(feat)
-            
-            # 3. Build Truth Trace with Custom Labels
+            # Build Truth Trace with Custom Labels
             truth_x_vals = []
             truth_y_vals = []
             truth_custom_labels = [] # List for hover text
@@ -258,21 +254,76 @@ def main():
                 y=truth_y_vals,
                 mode='lines',
                 line=dict(
-                    color=truth_features.get('color', 'black'), 
+                    color=truth_features.get('color', truth_color), 
                     width=line_thickness,
                 ),
                 name=default_label,
                 # Apply custom labels here
                 customdata=truth_custom_labels,
                 hovertemplate='<b>%{customdata}</b><br>%{x:,}<extra></extra>',
-                opacity=1,
+                opacity=truth_opacity,
                 showlegend=True
             ))
             
             # Add truth label to ticks
             current_tick_vals.append(y_pos + 1)
             current_tick_text.append(default_label)
-            
+        
+        
+        ## Process HEX-finder predictions (Standard tuples)
+        if feature_tuples:
+            for start, end in feature_tuples:
+                x_vals.extend([start, end, None])
+                y_vals.extend([y_pos, y_pos, None])
+        
+        # Add the single trace for all predictions
+        fig.add_trace(go.Scatter(
+            x=x_vals,
+            y=y_vals,
+            mode='lines',
+            line=dict(
+                color=hf_color, 
+                width=line_thickness
+            ),
+            name=lane_name,
+            hovertemplate='%{x:,}',
+            opacity=hf_opacity,
+            showlegend=True
+        ))
+        
+        
+        # Check predictions against truth (to plot FP/TP later)
+        exact_matches = [] 
+        partial_matches = [] 
+        partial_drawn = False
+        no_matches = []
+        
+        if truth_features is not None:
+            if feature_tuples:
+                for feat in feature_tuples:
+                    start, end = feat
+                    found_match = False 
+                    
+                    # Check for exact matches
+                    if tuple(feat) in truth_set:
+                        exact_matches.append(feat)
+                        found_match = True
+                    
+                    # Check for partial matches (start)
+                    if start in truth_set_flattened.keys():
+                        partial_matches.append(start)
+                        found_match = True
+                        
+                    # Check for partial matches (end)
+                    if end in truth_set_flattened.keys():
+                        partial_matches.append(end)
+                        found_match = True
+                    
+                    # If no exact or partial match was found, record it
+                    if not found_match:
+                        no_matches.append(feat)
+        
+        
         # Prepare axis and plot titles and ticks
         final_title_str = plot_title if plot_title is not None else f"Exon-level predictions for {seq_id}{' *' if add_note else ''}"
         final_title_text = f"<b>{final_title_str}</b>" if title_bold else final_title_str
@@ -340,66 +391,66 @@ def main():
             for start, end in exact_matches:
                 fig.add_vrect(
                     x0=start, x1=end,
-                    fillcolor="green", opacity=0.7,
+                    fillcolor=tp_color, opacity=tp_opacity,
                     layer="below", line_width=0,
                 )
             fig.add_trace(go.Scatter(
                 x=[None], y=[None],
                 mode='markers',
-                marker=dict(size=10, color="green", opacity=0.7, symbol='square'),
+                marker=dict(size=10, color=tp_color, opacity=tp_opacity, symbol='square'),
                 name=match_label,
                 hoverinfo='none'
             ))
         
-        # Add shading for No Matches / False Positives (Red)
-        if no_matches:
-            for start, end in no_matches:
-                fig.add_vrect(
-                    x0=start, x1=end,
-                    fillcolor="red", opacity=0.5, 
-                    layer="below", line_width=0,
-                )
-            fig.add_trace(go.Scatter(
-                x=[None], y=[None],
-                mode='markers',
-                marker=dict(size=10, color="red", opacity=0.5, symbol='square'),
-                name=no_match_label,
-                hoverinfo='none'
-            ))
-        
-        # Add shading for create_feature_lane_plotes (Orange)
+        # Add shading for partial matches
         if partial_matches:
             for pos in partial_matches:
                 # Only draw orange line if this position isn't part of an exact match
                 if not (truth_set_flattened[pos] in exact_matches):
-                    fig.add_vline(x=pos, line_width=1, line_dash="solid", line_color="orange")
+                    fig.add_vline(x=pos, line_width=partial_line_thickness, line_dash="solid", line_color=partial_color)
                     partial_drawn = True
             
             if partial_drawn:
                 fig.add_trace(go.Scatter(
                     x=[None], y=[None],
                     mode='lines',
-                    line=dict(color="orange", width=1),
+                    line=dict(color=partial_color, width=partial_line_thickness),
                     name="Partial match",
                     hoverinfo='none'
+            ))
+        
+        # Add shading for false positives
+        if no_matches:
+            for start, end in no_matches:
+                fig.add_vrect(
+                    x0=start, x1=end,
+                    fillcolor=fp_color, opacity=fp_opacity, 
+                    layer="below", line_width=0,
+                )
+            fig.add_trace(go.Scatter(
+                x=[None], y=[None],
+                mode='markers',
+                marker=dict(size=10, color=fp_color, opacity=fp_opacity, symbol='square'),
+                name=no_match_label,
+                hoverinfo='none'
             ))
         
         # Add shading for margins
         if shade_margin > 0:
             fig.add_vrect(
                 x0=seq_bounds[0], x1=seq_bounds[0] + shade_margin - 1,
-                fillcolor="grey", opacity=0.3,
+                fillcolor=not_covered_color, opacity=not_covered_opacity,
                 layer="below", line_width=0,
             )
             fig.add_vrect(
                 x0=seq_bounds[1] - shade_margin, x1=seq_bounds[1],
-                fillcolor="grey", opacity=0.3,
+                fillcolor=not_covered_color, opacity=not_covered_opacity,
                 layer="below", line_width=0,
             )
             fig.add_trace(go.Scatter(
                 x=[None], y=[None],
                 mode='markers',
-                marker=dict(size=10, color="grey", opacity=0.3, symbol='square'),
+                marker=dict(size=10, color=not_covered_color, opacity=not_covered_opacity, symbol='square'),
                 name=margin_label,
                 hoverinfo='none'
             ))
@@ -408,6 +459,7 @@ def main():
 
 
     def apply_copyable_seq_id_wrapper(html_content: str,
+                                      seq_id_color: str = seq_ID_color,
                                       body_background_color: str = body_background_color,
                                       shadow_color: str = shadow_color, 
                                       shadow_intensity: str = shadow_intensity,
@@ -490,7 +542,7 @@ def main():
                     #id-display {{ 
                         font-family: SFMono-Regular, Consolas, monospace;
                         background: #f0f7ff;
-                        color: #175599;
+                        color: {seq_id_color};
                         padding: 6px 14px;
                         border-radius: 6px;
                         font-weight: 600;
@@ -512,7 +564,7 @@ def main():
                     }}
 
                     #copy-btn:hover {{ background: #618057; }}
-                    #copy-btn.success {{ background: #175599; }}
+                    #copy-btn.success {{ background: {seq_id_color}; }}
                 </style>
             </head>
             <body>
@@ -802,7 +854,8 @@ def main():
                                                 seq_id=seq_id,
                                                 seq_length=seq_length, 
                                                 truth_features=truth_dict,
-                                                add_note=True)
+                                                add_note=True,
+                                                **plotly_colors)
             
             
             ## UPDATE THE MAIN FIGURE WITH TRACES FROM THIS SEQUENCE
@@ -877,7 +930,7 @@ def main():
                                             xanchor="left",
                                             y=1.35, # Positioned above plot but below title
                                             yanchor="top",
-                                            font=dict(size=dropdown_font_size, weight='bold')
+                                            font=dict(size=dropdown_font_size, weight='bold', color=seq_ID_color)
                                         )
                                     ],
                                     # Add Top Margin (t) to make space for Title + Dropdown
