@@ -1,15 +1,41 @@
 [build-system]
+
 requires = ["setuptools>=61.0"]
+
 build-backend = "setuptools.build_meta"
+
 
 [project]
 name = "Helix-EXon-Finder"
 version = "0.1"
 description = "An attempt at using structural profiles of DNA sequences for ab initio exon detection."
-# NOTE: Conda and the provided YAML in ./dependencies/environment.yml should be used BEFORE installing
-# this package via pip from within the created environment, this is because there are dependencies
-# that pip is not capable of handling (see README for full installation instructions)
-dependencies = [] # There ARE pip dependencies but specifying them here would be deceiving (see NOTE above)
+# NOTE: The provided YAML in ./dependencies/environment.yml should be used with conda BEFORE installing
+# this package via pip (with the new environment activated), this is because there are dependencies
+# that pip is not capable of handling. See the README for full installation instructions.
+dependencies = [] # There ARE pip dependencies, but specifying them here could be misleading (see NOTE above).
+authors = [
+  { name="Jonathan Hummel", email="jhgmbioinfo@gmail.com" }
+]
+maintainers = [
+  { name="Jonathan Hummel", email="jhgmbioinfo@gmail.com" }
+]
+license = { text="GPL-3.0-or-later" }
+readme = "README.md"
+urls = {
+  "Homepage" = "https://github.com/GreenMtn-bioinfo/Helix-EXon-finder",
+  "Repository" = "https://github.com/GreenMtn-bioinfo/Helix-EXon-finder",
+  "Documentation" = "https://github.com/GreenMtn-bioinfo/Helix-EXon-finder"
+}
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+  "Programming Language :: Python :: 3.10",
+  "Topic :: Scientific/Engineering :: Bio-Informatics",
+  "Operating System :: POSIX :: Linux",
+  "Operating System :: Microsoft :: Windows :: Windows Subsystem for Linux",
+]
 
 [project.scripts]
 HEX-finder = "Helix_EXon_Finder.cli.py:main"
