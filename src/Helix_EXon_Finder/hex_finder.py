@@ -15,6 +15,7 @@
 #TODO: Add a structural profile visualization script?
 
 
+
 # This block keeps expectations aligned between HEX-finder and visualize_predictions.py for sequences with no predictions.
 # No matter what changes are made to NO_PREDICTIONS_TEMPLATE, there must always be a 'sequence_id' and 'sequence_length' field
 # However, where those appear in the string or what other fields are specified in the template does not matter
@@ -41,38 +42,9 @@ NO_PREDICTIONS_PATTERN, NO_PREDICTIONS_GROUPS = parse_template(NO_PREDICTIONS_TE
 
 
 
-def main ():
+def main (args):
     
-    import argparse
-    import sys
     from .paths import MODELS_DIR, PROFILES_DIR, PREDICTIONS_DIR, NORM_DATA_PATHS, EXON_LENGTHS_DIST, NO_PREDICTIONS_LOG, shorten_path
-    
-
-    
-    ### PARSE USER ARGUMENTS PROVIDED AT THE COMMAND LINE
-    parser = argparse.ArgumentParser(description='Helix-EXon-finder (HEX-finder): Predict exons from genomic DNA sequences using a deep learning network trained on predicted structural profiles. For more details on the underlying methods and performance, see the README and acompanying pre-print (https://doi.org/10.64898/2025.12.19.694709).')
-    parser.add_argument('-f','--fasta', type=str, required=True, metavar='<path_to_fasta>',
-                        help='Path to an input FASTA file containing genomic sequences to analyze. Sequence IDs, which are used as profile (NPY) and prediction (GFF) file names, are taken from the header between ">" and the next whitespace. Please keep your sequence IDs concise, unique, and filename friendly.')
-    parser.add_argument('-m', '--model', type=str, default='TCN', choices=['TCN', 'BiLSTM', 'MBDA-Net'], metavar= "<'TCN' or 'BiLSTM' or 'MBDA-Net'>",
-                        help='Choice of trained model to use for predictions. TCN is the fastest and recommended for inference. MBDA-Net is slower but may perform marginally better.')
-    parser.add_argument('-t', '--threshold', type=float, default=0.75, metavar='<probability_threshold_float>',
-                        help='Exon-level probability score threshold for reporting an exon prediction (default is 0.75). Please see the README and/or pre-print for guidance on threshold selection.')
-    parser.add_argument('-d', action='store_true',
-                        help='If specified, the structural profiles will be deleted after predictions are made to save disk space. For reference, the structural profiles for ~0.577 Gbp of sequence take up ~90 GB of disk space.')
-    args = parser.parse_args()
-
-    if '--help' in sys.argv or '-h' in sys.argv:
-        sys.exit(0)
-
-    # Argument assignment to script-wide variables
-    exon_level_threshold = args.threshold
-    model_name = args.model
-    input_fasta = args.fasta
-    delete_profiles_after = args.d
-
-
-
-    ### IMPORT HEAVY MODULES AND PROCEED (ONLY IF HELP WAS NOT CALLED)
     import os
     import shutil
 
@@ -84,7 +56,7 @@ def main ():
 
     # Module imports can proceed normally now (post silencing)
     from keras.utils import timeseries_dataset_from_array
-    from . import keras_models as my_models
+    from . import keras_models
     from . import profile_generator_inference as pgi
     import numpy as np
     import pandas as pd
@@ -92,32 +64,40 @@ def main ():
     import json
     from colorama import Fore, init
     init(autoreset=True)
-
-
-
+    
+    
+    
+    # Argument assignment to script-wide variables
+    exon_level_threshold = args.threshold
+    model_name = args.model
+    input_fasta = args.fasta
+    delete_profiles_after = args.d
+    
+    
+    
     ### SCRIPT-WIDE PATHS, DATA, CONSTANTS (DO NOT CHANGE)
-
+    
     # Project paths
     models_dir = MODELS_DIR
     profiles_dir = PROFILES_DIR
     predictions_dir = PREDICTIONS_DIR
     norm_data_path = NORM_DATA_PATHS
     no_predictions_log = NO_PREDICTIONS_LOG
-
+    
     # Import exon length distribution data for exon-level prediction re-ranking
     length_dist = pd.read_csv(EXON_LENGTHS_DIST)
     length_dist.Proportion = length_dist.Proportion / 100
-
+    
     # Constants
     model_input_size = (77, 28) # DO NOT CHANGE (set by model training)
     final_predictions_offset = int((pgi.window_length-1)/2 + (model_input_size[0]-1)/2 + 1) 
     n_model_classes = 3 # DO NOT CHANGE (set by model training)
     bin_size = 10000 # Size of bins for grouping sequences by length (in bp)
-
-
-
+    
+    
+    
     ### FUNCTION DEFINITIONS
-
+    
     def load_json(path: str,
                 verbose: bool = False) -> dict:
         """
@@ -153,11 +133,11 @@ def main ():
         
         match model_name:
             case 'TCN':
-                model = my_models.TCN_classifier(input_shape=training_input_shape, n_classes=n_training_classes, **model_init)
+                model = keras_models.TCN_classifier(input_shape=training_input_shape, n_classes=n_training_classes, **model_init)
             case 'BiLSTM':
-                model = my_models.LSTM_classifier(input_shape=training_input_shape, n_classes=n_training_classes, **model_init)
+                model = keras_models.LSTM_classifier(input_shape=training_input_shape, n_classes=n_training_classes, **model_init)
             case 'MBDA-Net':
-                model = my_models.MBDA_Net(input_shape=training_input_shape, n_classes=n_training_classes, **model_init)
+                model = keras_models.MBDA_Net(input_shape=training_input_shape, n_classes=n_training_classes, **model_init)
             case _:
                 print(Fore.RED + f"ERROR: {model_name} must be either 'TCN', 'BiLSTM', or 'MBDA-Net'.")
                 exit()
@@ -571,8 +551,3 @@ def main ():
     print(Fore.GREEN + f"--> Exon-level predictions can be found in '{shorten_path(predictions_dir, 1)}' within GFF files (one file per processed input sequence).")
     print(Fore.YELLOW + "--> Consider using 'visualize_predictions.py' to look at the exons and compare them to known truth features (if available).")
     print(Fore.YELLOW + "--> Run 'python visualize_predictions.py --help' for more information on this tool's usage.")
-
-
-
-if __name__ == '__main__':
-    main()

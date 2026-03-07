@@ -7,6 +7,6 @@ src_path = Path(__file__).resolve().parent / "src"
 sys.path.insert(0, str(src_path))
 
 # Import the entry point script's main function and run it
-from Helix_EXon_Finder.cli_entry import main
+from Helix_EXon_Finder.cli import main
 if __name__ == "__main__":
     sys.exit(main())
