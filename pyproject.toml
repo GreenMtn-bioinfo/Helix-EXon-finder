@@ -1,9 +1,6 @@
 [build-system]
-
 requires = ["setuptools>=61.0"]
-
 build-backend = "setuptools.build_meta"
-
 
 [project]
 name = "Helix-EXon-Finder"
@@ -21,11 +18,6 @@ maintainers = [
 ]
 license = { text="GPL-3.0-or-later" }
 readme = "README.md"
-urls = {
-  "Homepage" = "https://github.com/GreenMtn-bioinfo/Helix-EXon-finder",
-  "Repository" = "https://github.com/GreenMtn-bioinfo/Helix-EXon-finder",
-  "Documentation" = "https://github.com/GreenMtn-bioinfo/Helix-EXon-finder"
-}
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Intended Audience :: Developers",
@@ -37,8 +29,13 @@ classifiers = [
   "Operating System :: Microsoft :: Windows :: Windows Subsystem for Linux",
 ]
 
+[project.urls]
+"Homepage" = "https://github.com/GreenMtn-bioinfo/Helix-EXon-finder"
+"Repository" = "https://github.com/GreenMtn-bioinfo/Helix-EXon-finder"
+"Documentation" = "https://github.com/GreenMtn-bioinfo/Helix-EXon-finder"
+
 [project.scripts]
-HEX-finder = "Helix_EXon_Finder.cli.py:main"
+HEX-finder = "Helix_EXon_Finder.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

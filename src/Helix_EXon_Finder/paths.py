@@ -7,7 +7,8 @@ import os
 
 
 ## Get the absolute path to the directory where THIS file lives
-PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+PACKAGE_DIR = Path(__file__).resolve().parent
+PROJECT_ROOT = PACKAGE_DIR.parent.parent
 
 
 ## Important sub-directories relative to root
@@ -36,7 +37,7 @@ for dir in make_dirs:
 HELD_OUT = DATA_DIR / "held_out_regions_GRCh38_p14.txt"
 FIG_11_DEMO = DEMO_SEQS_DIR / "Figure11_demo_coords"
 EXAMPLE_DIST = DEMO_SEQS_DIR / "example_length_distribution"
-GENOME_FETCHER = PROJECT_ROOT / "src" / "fetch_reference.sh"
+GENOME_FETCHER = PACKAGE_DIR / "fetch_reference.sh"
 
 # Used by hex_finder.py
 NORM_DATA_PATHS = [NORM_DIR / 'z_norm_training_means.npy', 
