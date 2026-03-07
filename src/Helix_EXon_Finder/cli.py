@@ -6,6 +6,13 @@ from .paths import DEMO_SEQS_DIR, REFERENCE_DIR, FIG_11_DEMO, EXAMPLE_DIST, PRED
 
 
 
+# TODO: add a robust check that this is being run with the right dependencies available, i.e. via:
+# 1) from within the conda environment specified in provided environment.yml file
+# 2) via test imports to make sure key packages are installed and available
+# Direct the user to the install commands in the README if not
+
+
+
 def main():
     
     parser = argparse.ArgumentParser(description="This is the command-line interface for using HEX-finder and its auxiliary tools.")

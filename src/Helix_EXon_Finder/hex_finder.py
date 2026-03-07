@@ -549,5 +549,5 @@ def main (args):
         print(Fore.GREEN + f"--> Structural profiles can be found in '{shorten_path(profiles_dir, 1)}' as NPY files (one file per processed input sequence).")
     
     print(Fore.GREEN + f"--> Exon-level predictions can be found in '{shorten_path(predictions_dir, 1)}' within GFF files (one file per processed input sequence).")
-    print(Fore.YELLOW + "--> Consider using 'visualize_predictions.py' to look at the exons and compare them to known truth features (if available).")
-    print(Fore.YELLOW + "--> Run 'python visualize_predictions.py --help' for more information on this tool's usage.")
+    print(Fore.YELLOW + "--> Consider using 'HEX-finder visualize' to look at the exons and compare them to known truth features (if available).")
+    print(Fore.YELLOW + "--> Run 'HEX-finder visualize --help' for more information on this tool's usage.")
