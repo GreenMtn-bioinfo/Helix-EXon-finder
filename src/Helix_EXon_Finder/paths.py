@@ -54,7 +54,7 @@ TETRANUCLEO = DATA_DIR / 'tetranucleo_Sharma_et_al_2025_params.csv'
 
 # Used by visualize_predictions.py
 VISUAL_PREDICTIONS = PREDICTIONS_DIR / "visual_report.html"
-FAVICON = PROJECT_ROOT / "dependencies" / "hex_finder_favicon_32.png"
+FAVICON = PROJECT_ROOT / "images" / "hex_finder_favicon_32.png"
 
 
 ## Define utility functions for handling paths
