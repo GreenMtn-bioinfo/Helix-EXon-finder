@@ -440,7 +440,7 @@ def main(args):
         with open(truth_features_path, mode='r') as file:
             lines = file.readlines()
             if not lines:
-                print(Fore.GREEN + f"No reference exons were found for these sequences, but this GFF is still valid to use with 'visualize_predictions.sh'.")
+                print(Fore.GREEN + f"No reference exons were found for these sequences, but this GFF is still valid to use with 'HEX-finder visualize'.")
     
     # Clear the temp folder, contents are no longer needed
     shutil.rmtree(temp_dir)

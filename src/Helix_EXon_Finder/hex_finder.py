@@ -549,4 +549,4 @@ def main (args):
     
     print(Fore.GREEN + f"--> Exon-level predictions can be found in '{shorten_path(predictions_dir, 1)}' within GFF files (one file per processed input sequence).")
     print(Fore.YELLOW + "--> Consider using 'HEX-finder visualize' to look at the exons and compare them to known truth features (if available).")
-    print(Fore.YELLOW + "--> Run 'HEX-finder visualize --help' for more information on this tool's usage.") #implemented 
+    print(Fore.YELLOW + "--> Run 'HEX-finder visualize --help' for more information on this tool's usage (see the README).")
