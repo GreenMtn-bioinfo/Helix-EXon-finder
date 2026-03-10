@@ -425,7 +425,6 @@ def main (args):
         profile = np.load(profile_file, mmap_mode='r')
         profile_lengths[profile_file.name] = profile.shape[1]
     total_bp = sum(profile_lengths.values())
-    n_profiles = len(profiles_list)
     
     
     ## 3) Load the trained model, make predictions, and write results
@@ -440,7 +439,7 @@ def main (args):
     
     # Initialize tracking variables
     msg_length = 0
-    beginning = time.time()
+    beginning = time.time() # TODO: move this to the beginning to include profile generation (report total pipeline time)?
     bin_stats = {} 
     total_processed_time = 0.0
     total_processed_bp = 0
@@ -550,4 +549,4 @@ def main (args):
     
     print(Fore.GREEN + f"--> Exon-level predictions can be found in '{shorten_path(predictions_dir, 1)}' within GFF files (one file per processed input sequence).")
     print(Fore.YELLOW + "--> Consider using 'HEX-finder visualize' to look at the exons and compare them to known truth features (if available).")
-    print(Fore.YELLOW + "--> Run 'HEX-finder visualize --help' for more information on this tool's usage.")
+    print(Fore.YELLOW + "--> Run 'HEX-finder visualize --help' for more information on this tool's usage.") #implemented 

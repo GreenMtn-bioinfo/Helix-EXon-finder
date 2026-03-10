@@ -292,7 +292,7 @@ def main(args):
         print(Fore.YELLOW + f"--> Please specify a path to a different directory with your own copies of these 3 files using the -r or --reference_dir option.")
         fetch_reference = input("--> Alternatively, would you like to automatically fetch GRCh38.p14 and the required annotation now and use that? (y/n) ")
         if fetch_reference == 'y':
-            command = f"{GENOME_FETCHER} {REFERENCE_DIR}/"
+            command = f"bash {GENOME_FETCHER} {REFERENCE_DIR}/"
             execute_status = subprocess.run(command, shell=True)
             if any(not exists for exists in check_ref_dir(reference_dir)):
                 print(Fore.RED + "Something went wrong during reference genome retrieval.\nPlease check your internet connection and/or the FTP addresses in 'fetch_reference.sh' and try again.")

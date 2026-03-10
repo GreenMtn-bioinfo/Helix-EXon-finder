@@ -22,7 +22,7 @@ def main():
     
     #### Subparser for get_demo_seqs.py
     parser_get_demo_seqs = subparsers.add_parser('fetch', # TODO: Improve formatting of the description string
-        help='Fetch sequences from GRCh38.p14 to try out HEX-finder, along with reference exons (for use with "visualize" after "predict").',
+        help='Fetch sequences from GRCh38.p14 to try out HEX-finder, along with reference exons (for use with "visualize").',
         description="Facilitates retrieving sequences and reference features from GRCh38.p14 in order to try out HEX-finder's exon prediction capabilities. It will fetch the required reference genome if none is present or provided (see <reference_genome_directory>). This tool has two mutually exclusive use cases: 1) The user provides a path to a file of genomic coordinates (see <coordinates_file>) and sequences plus annotation are prepared for that set. 2) The user provides an integer (see <number_to_sample>), as well as a file with the allowed sequence lengths (see <lengths_distribution_file>), for random sampling. Coordinates from within the genomic regions withheld from the models' training set are first randomly sampled, and then the corresponding sequences and reference features are prepared. In either use case, reference exons within the sequences/coordinates of interest are retrieved and converted into local, 1-based coordinates (wrt to each sequence's start). The resulting GFF can be used with 'visualize_predictions.py' to visually evaluate HEX-finder's predictions directly against RefSeq MANE Select exons as a truth source.")
     
     # Arguments that apply to either use case
