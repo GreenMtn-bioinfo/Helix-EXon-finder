@@ -447,5 +447,5 @@ def main(args):
     os.mkdir(temp_dir)
     
     # Print final messages
-    print(Fore.YELLOW + f"--> You can now run 'HEX-finder predict -f .{os.path.sep}{shorten_path(output_fasta, 2)}' to make predictions.")
+    print(Fore.YELLOW + f"--> You can now run 'HEX-finder predict -f {output_fasta}' to make predictions.")
     print(Fore.YELLOW + f"--> Run 'HEX-finder predict --help' for more information on the options (see the README).")
