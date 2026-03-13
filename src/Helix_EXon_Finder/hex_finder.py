@@ -1,5 +1,5 @@
 ### This is main script, which provides command-line access to the exon-prediction models and post-processing pipeline that were created/trained/evaluated
-### in the work described by the pre-print (https://doi.org/10.64898/2025.12.19.694709). There are two additional tools that facilitate fetching sequences
+### in the work described by the preprint (https://doi.org/10.64898/2025.12.19.694709). There are two additional tools that facilitate fetching sequences
 ### and reference annotation and later visualizing HEX-finder predictions right next to RefSeq features for the same sequence (if present). These tools have been
 ### provided so that the performance of this method can be transparently and conveniently assessed ('get_demo_seqs.py" and "visualize_predictions.py, see REAME).
 ### That said, all that is required to use this script is a FASTA containing the target sequences, with unique sequence IDs at the start of each header (between '>' and whitespace). 
@@ -20,7 +20,7 @@
 # No matter what changes are made to NO_PREDICTIONS_TEMPLATE, there must always be a 'sequence_id' and 'sequence_length' field
 # However, where those appear in the string or what other fields are specified in the template does not matter
 
-NO_PREDICTIONS_TEMPLATE = "HEX-finder made no exon predictions for sequence {sequence_id} of length {sequence_length} bp."
+NO_PREDICTIONS_TEMPLATE = "HEX-finder made no exon predictions for sequence {sequence_id} of length {sequence_length} nc."
 
 def parse_template(template: str) -> tuple:
     """
@@ -92,7 +92,7 @@ def main (args):
     model_input_size = (77, 28) # DO NOT CHANGE (set by model training)
     final_predictions_offset = int((pgi.window_length-1)/2 + (model_input_size[0]-1)/2 + 1) 
     n_model_classes = 3 # DO NOT CHANGE (set by model training)
-    bin_size = 10000 # Size of bins for grouping sequences by length (in bp)
+    bin_size = 10000 # Size of bins for grouping sequences by length (in nc)
     
     
     
@@ -225,8 +225,8 @@ def main (args):
         
         Args:
             profile: A Numpy array with the structural profile for a sequence, (of the shape (28 x [seq_length - unprocessed start/end windows]) and produced by 'profile_generator_inference.py').
-            model: A Keras model object with weights fully loaded, must be one of the three trained during the work described in the pre-print.
-            window_size: The model's context/input window, locked to the training window (here 77 bp).
+            model: A Keras model object with weights fully loaded, must be one of the three trained during the work described in the preprint.
+            window_size: The model's context/input window, locked to the training window (here 77 nc).
             verbose: Whether or not Keras prints updates during inference (keep off, this slows things down).
             batch_size: Determines how many sequence windows (of window_size) are fed to the model for inference at once. This is important for very long sequences to not hang/run out of memory.
             
@@ -250,7 +250,7 @@ def main (args):
     def length_prob(x: int, 
                     data: pd.DataFrame = length_dist) -> pd.DataFrame:
         """
-        Looks up the probability of a length of an exon based on an approximate human distribution estimated from Mokry et al. (2010), see pre-print.
+        Looks up the probability of a length of an exon based on an approximate human distribution estimated from Mokry et al. (2010), see preprint.
         """
         
         return np.interp(x, data.Length, data.Proportion)
@@ -263,12 +263,12 @@ def main (args):
         Takes the boundary-level predictions (class calls) and considers all possible resulting exons, finally filtering that down to a more limited set.
         1) Calculates exon-level scores based on the corresponding beginning and start position probabilities (for the called class) from the model.
         2) Reweighs the exon-level prediction's scores based on the rough probability of that hypothetical exon's length in the human genome.
-        NOTE: This approach is a crude stand in for more complex model(s) that have also effectively learned the relevant gene structural/length distributions (see the pre-print)
+        NOTE: This approach is a crude stand in for more complex model(s) that have also effectively learned the relevant gene structural/length distributions (see the preprint)
         
         Args:
             decisions: A Numpy array with the boundary-level class calls from the model for each position in a sequence (one class assigned per position)
             probability: A Numpy array with the corresponding model probabilities (3 per position) from which those classes were called
-            max_exon_length: This function will not pass and exon prediction longer than max_exon_length (where the length distribution estimated from Mokry et al. ended), this is a major limitation (see the pre-print)!
+            max_exon_length: This function will not pass and exon prediction longer than max_exon_length (where the length distribution estimated from Mokry et al. ended), this is a major limitation (see the preprint)!
         
         Returns:
             A list of tuples with the start and end positions for the passed exons, as well as their length-adjusted exon-level score
@@ -453,7 +453,7 @@ def main (args):
         if i > 0:
             estimated_remaining_time = 0.0
             
-            # Calculate global rate (time per bp) as a fallback for empty bins
+            # Calculate global rate (time per nc) as a fallback for empty bins
             global_rate_per_bp = total_processed_time / total_processed_bp if total_processed_bp > 0 else 0
             
             for remaining_file in remaining_profiles:
@@ -465,7 +465,7 @@ def main (args):
                     avg_bin_time = bin_stats[rem_bin][0] / bin_stats[rem_bin][1]
                     estimated_remaining_time += avg_bin_time
                 else:
-                    # No data for this bin yet, use the global rate per bp instead
+                    # No data for this bin yet, use the global rate per nc instead
                     estimated_remaining_time += rem_len * global_rate_per_bp
             
             # Formatting the time string for status message
@@ -533,7 +533,7 @@ def main (args):
         
     # Show final completion message
     final_end = time.time()
-    full_msg = f'HEX-finder finished making predictions for all {len(profiles_list)} sequences! Took {round((final_end - beginning)/60, 2)} minutes for {total_bp} bp of total sequence length.'
+    full_msg = f'HEX-finder finished making predictions for all {len(profiles_list)} sequences! Took {round((final_end - beginning)/60, 2)} minutes for {total_bp} nc of total sequence length.'
     full_msg = pad_message(full_msg, msg_length)
     print(Fore.GREEN + full_msg)
     

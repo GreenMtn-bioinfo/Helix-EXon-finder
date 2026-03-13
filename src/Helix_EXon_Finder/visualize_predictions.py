@@ -2,7 +2,7 @@
 ### so it should only be run once HEX-finder has been run and GFFs exist within the "../predictions/" directory.
 ### HEX-finder predictions can be visualized alone or, if local coordinates for reference exons are on-hand,
 ### predictions can be plotted alongside these features as a source of truth/qualitative performance evaluation. 
-### Please see the pre-print for a more quantitative performance evaluation (https://doi.org/10.64898/2025.12.19.694709).
+### Please see the preprint for a more quantitative performance evaluation (https://doi.org/10.64898/2025.12.19.694709).
 ### If you use the 'get_demo_seqs.py' tool to fetch sequences, it will automatically prepare the truth/reference features 
 ### in the correct format for use with this tool. As such, even if you plan on running HEX-finder on your own sequences AND benchmark features, 
 ### it is worth trying this out to see firsthand the appropriate format for the GFF file that this script can take as a truth source. 
@@ -158,7 +158,7 @@ def main(args):
                                 plot_title=None,
                                 plot_height=400,
                                 add_note=False,
-                                xaxis_label="Position in sequence (bp)",
+                                xaxis_label="Position in sequence (nucleotide index)",
                                 font_family="Arial",
                                 title_font_size=int(24*font_scaler),
                                 title_bold=True,
@@ -933,7 +933,7 @@ def main(args):
         plotly_html = pio.to_html(final_fig, config=plot_config, full_html=False, include_plotlyjs=include_javascript)
         update_HTML(html_content = plotly_html,
                     save_path = output_path, 
-                    function_calls_list = [ (apply_copyable_seq_id_wrapper, {'note' : 'Attempting to pan past the sequence boundaries forces a zoom instead, which looks glitchy but updates correctly after mouse release. Most exons require zooming to be visible for sequences approaching ≥ 500 Kbp in length.'}),
+                    function_calls_list = [ (apply_copyable_seq_id_wrapper, {'note' : 'Attempting to pan past the sequence boundaries forces a zoom instead, which looks glitchy but updates correctly after mouse release. Most exons require zooming to be visible for sequences approaching ≥ 500 Knc in length.'}),
                                             (add_update_HTML_title, {'new_title' : "HEX-finder: Predictions Report"}),
                                             (modify_plotly_graph_div, {'height_added' : 25}),
                                             (inject_base64_favicon, {'png_path' : favicon_path})])

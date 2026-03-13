@@ -23,7 +23,7 @@ def main():
     #### Subparser for get_demo_seqs.py
     parser_get_demo_seqs = subparsers.add_parser('fetch', # TODO: Improve formatting of the description string
         help='Fetch sequences from GRCh38.p14 to try out HEX-finder, along with reference exons (for use with "visualize").',
-        description="Facilitates retrieving sequences and reference features from GRCh38.p14 in order to try out HEX-finder's exon prediction capabilities. It will fetch the required reference genome if none is present or provided (see <reference_genome_directory>). This tool has two mutually exclusive use cases: 1) The user provides a path to a file of genomic coordinates (see <coordinates_file>) and sequences plus annotation are prepared for that set. 2) The user provides an integer (see <number_to_sample>), as well as a file with the allowed sequence lengths (see <lengths_distribution_file>), for random sampling. Coordinates from within the genomic regions withheld from the models' training set are first randomly sampled, and then the corresponding sequences and reference features are prepared. In either use case, reference exons within the sequences/coordinates of interest are retrieved and converted into local, 1-based coordinates (wrt to each sequence's start). The resulting GFF can be used with 'visualize_predictions.py' to visually evaluate HEX-finder's predictions directly against RefSeq MANE Select exons as a truth source.")
+        description="Facilitates retrieving sequences and reference features from GRCh38.p14 in order to try out HEX-finder's exon prediction capabilities. It will fetch the required reference genome if none is present or provided (see <reference_genome_directory>). This tool has two mutually exclusive use cases: 1) The user provides a path to a file of genomic coordinates (see <coordinates_file>) and sequences plus annotation are prepared for that set. 2) The user provides an integer (see <number_to_sample>), as well as a file with the allowed sequence lengths (see <lengths_distribution_file>), for random sampling. Coordinates from within the genomic regions withheld from the models' training set are first randomly sampled, and then the corresponding sequences and reference features are prepared. In either use case, reference exons within the sequences/coordinates of interest are retrieved and converted into local, 1-based coordinates (i.e. coordinates relative to each sequence's start). The resulting GFF can be used with 'HEX-finder visualize' to plot HEX-finder's predictions and compare directly to RefSeq MANE Select exons as a truth source.")
     
     # Arguments that apply to either use case
     parser_get_demo_seqs.add_argument('-q', '--quiet', action='store_true',
@@ -44,7 +44,7 @@ def main():
                         help='An integer specifying how many coordinates to randomly sample from the regions of GRCh38.p14 that were held-out during model training.')
     sampling_group = parser_get_demo_seqs.add_argument_group(title='used only when <number_to_sample> is provided')
     sampling_group.add_argument('-l', '--lengths', type=str, default=None, metavar='<lengths_distribution_file>',
-                                help=f'Path to a file with one sequence length per line (integers). This will be used as the distribution of possible lengths for the random coordinate sampling. Please see or use "{shorten_path(EXAMPLE_DIST, 2)}" as a valid example.')
+                                help=f'Path to a file with one sequence length per line (integers only). This will be used as the distribution of possible lengths for the random coordinate sampling. Please see or use "{shorten_path(EXAMPLE_DIST, 2)}" as a valid example.')
     sampling_group.add_argument('-o', '--output', type=str, default=None, metavar='<output_base_name>',
                                 help=f'The base name to use for all output files if random sampling is chosen (defaults to "<number_to_sample>_seqs"). All files will be saved in "{shorten_path(DEMO_SEQS_DIR, 1)}".')
     sampling_group.add_argument('-s', '--seed', type=int, default=2026, metavar='<seed_integer>',
@@ -55,15 +55,15 @@ def main():
     #### Subparser for hex_finder.py
     parser_hex_finder = subparsers.add_parser('predict',
         help='Use HEX-finder to make exon predictions for a set of sequences.',
-        description="Helix-EXon-finder (HEX-finder): Predict exons from genomic DNA sequences using a deep learning network trained on predicted structural profiles. For more details on the underlying methods and performance, see the README and accompanying pre-print (https://doi.org/10.64898/2025.12.19.694709).")
+        description="Helix-EXon-finder (HEX-finder): Predict exons from genomic DNA sequences using a deep learning network trained on estimated structural profiles. For more details on the underlying methods and performance, see the README and accompanying preprint (https://doi.org/10.64898/2025.12.19.694709).")
     parser_hex_finder.add_argument('-f','--fasta', type=str, required=True, metavar='<path_to_fasta>',
-                        help='Path to an input FASTA file containing genomic sequences to analyze. Sequence IDs, which are used as profile (NPY) and prediction (GFF) file names, are taken from the header between ">" and the next whitespace. Please keep your sequence IDs concise, unique, and filename friendly.')
+                        help='Path to an input FASTA file containing genomic sequences to analyze. Sequence IDs, which are used as profile (NPY) and prediction (GFF) file names, are taken from the header between ">" and the next whitespace. Please keep your sequence IDs concise, unique, and filename friendly. Sequences will be skipped that contain any characters other than A, C, G, or T. Sequences with lengths < 104 or > 10M will also be skipped. That said, it is recommended to not include sequences much smaller than 150 nucleotides.')
     parser_hex_finder.add_argument('-m', '--model', type=str, default='TCN', choices=['TCN', 'BiLSTM', 'MBDA-Net'], metavar= "<'TCN' or 'BiLSTM' or 'MBDA-Net'>",
-                        help='Choice of trained model to use for predictions. TCN is the fastest and recommended for inference. MBDA-Net is slower but may perform marginally better.')
+                        help='Choice of trained model to use for predictions. TCN is the fastest and recommended for inference. MBDA-Net is slower but may perform marginally better. This speed difference may be smaller on newer GPUs.')
     parser_hex_finder.add_argument('-t', '--threshold', type=float, default=0.75, metavar='<probability_threshold_float>',
-                        help='Exon-level probability score threshold for reporting an exon prediction (default is 0.75). Please see the README and/or pre-print for guidance on threshold selection.')
+                        help='Exon-level probability score threshold for reporting an exon prediction (defaults to 0.75). Please see the preprint for information on threshold selection and model/pipeline performance.')
     parser_hex_finder.add_argument('-d', action='store_true',
-                        help='If specified, the structural profiles will be deleted after predictions are made to save disk space. For reference, the structural profiles for ~0.577 Gbp of sequence take up ~90 GB of disk space.')
+                        help='If specified, the structural profiles will be deleted after predictions are made to save disk space. For reference, the structural profiles for ~0.577 Gnc of sequence take up ~90 GB of disk space. Any log files in the profiles directory will be moved to the predictions directory prior to clearing.')
     
     
     
@@ -72,13 +72,9 @@ def main():
         help="Generate plots of HEX-finder's predictions (alongside known features for the same sequences, if provided).",
         description="Creates a simple, self-contained HTML report for visualizing HEX-finder predictions and comparing against truth features (if available).")
     visualize_prediction.add_argument('-p','--predictions_dir', type=str, default=PREDICTIONS_DIR, metavar='<predictions_directory_path>',
-                        help=f"Path to a directory containing GFFs with predictions generated by HEX-finder (defaults is '{shorten_path(PREDICTIONS_DIR, 1)}').")
+                        help=f"Path to a directory containing GFFs with predictions generated by HEX-finder (defaults to '{shorten_path(PREDICTIONS_DIR, 1)}').")
     visualize_prediction.add_argument('-t','--truth_features', type=str, default=None, metavar='<path_to_local_coords_GFF>',
-                        help=f"Path to a single GFF file containing the local 1-based coordinates (wrt sequence start) of known reference features for all of the sequences of interest. Sequence IDs in the GFF must match those pulled by HEX-finder from the FASTA headers. See the GFFs provided in '{shorten_path(DEMO_SEQS_DIR, 1)}' for valid formatting. While not necessary, the 9th column (i.e. attributes field) can contain annotation used to label individual reference features (see <feature_attribute_name>). If left unspecified, only the HEX-finder predictions will be plotted.")
-    visualize_prediction.add_argument('-tl','--truth_labels_attribute', type=str, default=None, metavar='<feature_attribute_name>',
-                        help=f"Name of the attribute in the attributes field/column of the truth GFF from which to pull individual feature labels (see <path_to_local_coords_GFF> above). Attributes field must use ';' for attribute separation and '=' for attribute assignment. See the GFFs provided in '{shorten_path(DEMO_SEQS_DIR, 1)}' for valid examples. For RefSeq annotation, 'gene' will label each feature with its HUGO gene symbol. If left unspecified, each reference feature will simply be labeled as what is provided for <reference_features_source>.")
-    visualize_prediction.add_argument('-tn','--truth_source_name', type=str, default=None, metavar='<reference_features_source>',
-                        help="Name of the source of reference annotation HEX-finder is being compared to (for the axis labels/legend, e.g. 'BestRefSeq'). If unspecified, the script attempts to pull this from the 'source' field of the GFF file of truth_features (if provided and non-empty). If a homogenous source name is not found in that file, the label defaults to 'Reference'.")
+                        help=f"Path to a single GFF file containing the local, 1-based coordinates of known reference features for all of the sequences of interest (i.e. the coordinates relative to sequence start). Sequence IDs in the GFF must match those pulled by HEX-finder from the FASTA headers. See the GFF provided in '{shorten_path(DEMO_SEQS_DIR, 1)}' for valid formatting. While not necessary, the 9th column (i.e. attributes field) can contain annotation used to label individual reference features (see <feature_attribute_name>). If left unspecified, only the HEX-finder predictions will be plotted.")
     visualize_prediction.add_argument('-o','--output_path', type=str, default=VISUAL_PREDICTIONS, metavar='<output_HTML_path>',
                         help=f"Path to write the final HTML report to (the default is '{shorten_path(VISUAL_PREDICTIONS, 2)}').")
     visualize_prediction.add_argument('-se','--skip_empty', action='store_true',
@@ -89,6 +85,11 @@ def main():
                         help="If specified, Plotly's JavaScript source code is baked into the HTML report. This ensures fully functional plots when there is no internet connection. This increases the report size from <100 Kb to ~4.5 Mb.")
     visualize_prediction.add_argument('-ac', '--accessibility_colors', action='store_true',
                         help="If specified, an alternative color palette is used in the report plots that should offer an improvement over the default for those with most forms of color blindness.")
+    truth_provided_group = visualize_prediction.add_argument_group(title='used only when <path_to_local_coords_GFF> is provided')
+    truth_provided_group.add_argument('-tl','--truth_labels_attribute', type=str, default=None, metavar='<feature_attribute_name>',
+                        help=f"Name of the attribute in the attributes field/column of the truth GFF from which to pull individual exon labels, if desired (see <path_to_local_coords_GFF> above). The attributes field in the GFF must use ';' for attribute separation and '=' for attribute assignment. See the GFF provided in '{shorten_path(DEMO_SEQS_DIR, 1)}' for valid examples. For RefSeq annotation, 'gene' will label each feature with its HUGO gene symbol. If left unspecified, each reference feature will simply be labeled as what is provided for <reference_features_source>.")
+    truth_provided_group.add_argument('-tn','--truth_source_name', type=str, default=None, metavar='<reference_features_source>',
+                        help="Name of the source of reference annotation HEX-finder is being compared to (for the axis labels/legend, e.g. 'BestRefSeq'). If unspecified, the script attempts to pull this from the 'source' field of the GFF file of truth_features (if provided and non-empty). If a homogenous source name is not found in that file, the label defaults to 'Reference'.")
     
     
     

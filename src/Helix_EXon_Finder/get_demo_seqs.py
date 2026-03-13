@@ -184,7 +184,7 @@ def main(args):
         end = feature_coords[1]
         seq_length = seq_end_global - seq_start_global + 1
         
-        # First convert to the local, i.e. bp of offset/position relative to global start
+        # First convert to the local, i.e. nc of offset/position relative to global start
         new_start = start - seq_start_global + 1
         new_end = end - seq_start_global + 1
         

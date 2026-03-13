@@ -1,5 +1,11 @@
 # About the data files
 
-+ **Context and citation for the data files in this directory will be provided soon.**
++ Please see the ["Data Dependencies" section in the README](/README.md#data-dependencies) for some important context on the **three CSVs** in this directory. I do **not** claim to be the original author or owner of the data in these particular files. 
+    + Two of these CSVs contain [supplemental data from Sharma et al., 2025](https://www.rsc.org/suppdata/d4/mo/d4mo00241e/d4mo00241e1.xlsx). They hold the authors' mappings that translate [tri-nucleotides](/data/trinucleo_Sharma_et_al_2025_params.csv) and [tetra-nucleotides](/data/tetranucleo_Sharma_et_al_2025_params.csv) into numerical values for each structural parameter before the moving average is calculated to generate each structural profile.
+    + [The other CSV](/data/human_exon_length_distribution_Mokry_et_al_2010.csv) contains data points estimated from Figure 1 in a publication by [Mokry et al. in 2010](https://doi.org/10.1093/nar/gkq072) as a stand-in for higher-quality data on the distribution of exon lengths in the human genome. While I created this file, it is important to note that is is an approximate recreation of data that I am not the source or owner of.
 
-+ For now, context and citation for these data files can be found in the [pre-print](https://doi.org/10.64898/2025.12.19.694709).
++ **[held_out_regions_GRCh38_p14.txt](/data/held_out_regions_GRCh38_p14.txt):** This file specifies the regions of each chromosome from which no training data was pulled during the development of the models (i.e. the "held-out"/testing regions). `HEX-finder fetch` uses this file to know where to sample sequences from, or when to issue warnings for user-specified coordinates.
+
++ **[normalization_params/](/data/normalization_params/):** This directory contains four NPY files used during the `HEX-finder predict` pipeline to normalize structural profiles prior to inference. These are arrays of parameter-wise means, standard deviations, minimums, and maximums calculated from the training set structural profiles. The normalization method used is z-normalization first, followed by min-max normalization, so the minimum/maximum arrays were calculated after z-normalization.
+
++ Further context and citations can be found in the [preprint](https://doi.org/10.64898/2025.12.19.694709).

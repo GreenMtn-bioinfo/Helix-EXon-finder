@@ -62,7 +62,7 @@ def log_sequence(field1: str,
 
 
 def load_and_sort_by_length(fasta_path: str, # TODO: Respect lowercase nucleobase masking, perhaps as a user argument for 'hex_finder.py'?
-                            min_seq_length: int = int((window_length - 1) + model_input_size[0]), # TODO: Revisit this number. This leaves a single 77 bp window of profile after profile generation, prediction will be made for just one position/nucleotide in the center of the sequence
+                            min_seq_length: int = int((window_length - 1) + model_input_size[0]) + 1, # TODO: Revisit this number. This leaves two 77 nc windows of profile after profile generation, prediction will be made for just two positions/nucleotides in the center of the sequence
                             max_seq_length: int = maximum_sequence_length_allowed) -> dict: 
     """
     Uses Biopython functionality to load a FASTA file and group the sequences and ids (headers) by sequence length.
@@ -95,8 +95,8 @@ def load_and_sort_by_length(fasta_path: str, # TODO: Respect lowercase nucleobas
                     lengths[length].append((str(record.seq).upper(), record.id)) # append to existing list under same key (length)
             
             else:
-                log_sequence(record.id, f'Skipped: too long (>{max_seq_length} bp) or too short (<{min_seq_length} bp).')
-                # print(f'Sequence {record.id} will not be processed due being too long (>{max_seq_length} bp) or too short (<{min_seq_length} bp).')
+                log_sequence(record.id, f'Skipped: too long (>{max_seq_length} nc) or too short (<{min_seq_length} nc).')
+                # print(f'Sequence {record.id} will not be processed due being too long (>{max_seq_length} nc) or too short (<{min_seq_length} nc).')
         
         else:
             log_sequence(record.id, f'Skipped: has characters other than {accept}.')
@@ -290,7 +290,7 @@ def process_long_sequence(seq_tuple: tuple,
                     chunks[-1] = (merged_seq, prev_index, merged_resources, merged_len)
                     
                     if verbose:
-                        print(f"{script_name}: Merged small tail chunk ({chunk_real_len} bp) into previous chunk for stability.")
+                        print(f"{script_name}: Merged small tail chunk ({chunk_real_len} nc) into previous chunk for stability.")
                         
                 else:
                     if verbose:
@@ -306,7 +306,7 @@ def process_long_sequence(seq_tuple: tuple,
             chunks.append((chunk_sub_seq, i, typical_chunk_resources, typical_chunk_length))
             
     if verbose:
-        print(f"{script_name}: Parallelizing long sequence {seq_id} ({seq_len} bp) over {len(chunks)} chunks...")
+        print(f"{script_name}: Parallelizing long sequence {seq_id} ({seq_len} nc) over {len(chunks)} chunks...")
         
     # Process chunks in parallel, i.e. we create a dedicated pool for this sequence
     results = []
@@ -338,10 +338,10 @@ def process_long_sequence(seq_tuple: tuple,
             np.save(profiles_path / f'{seq_id}.npy', full_profile)
         else:
             # If not one file per seq, we append to the bulk file for this total length
-            with NpyAppendArray(profiles_path / f'{seq_len}bp_seq_profiles.npy', delete_if_exists=False) as npy_file:
+            with NpyAppendArray(profiles_path / f'{seq_len}nc_seq_profiles.npy', delete_if_exists=False) as npy_file:
                 npy_file.append(np.reshape(full_profile, shape=(1, *full_profile.shape)))
             
-            with open(profiles_path / f'{seq_len}bp_seq_ids.txt', mode='a') as file:
+            with open(profiles_path / f'{seq_len}nc_seq_ids.txt', mode='a') as file:
                 file.writelines(f'{seq_id}\n')
                 
         return 1
@@ -409,11 +409,11 @@ def profiles_batch(seq_items: list,
                 else:
                     
                     # Append this profile to the NPY file with others of the same length
-                    with NpyAppendArray(profiles_path / f'{result[3]}bp_seq_profiles.npy', delete_if_exists=False) as npy_file:
+                    with NpyAppendArray(profiles_path / f'{result[3]}nc_seq_profiles.npy', delete_if_exists=False) as npy_file:
                         npy_file.append(np.reshape(result[1], shape=(1, *result[1].shape)))
                 
                     # Note the order of the sequences saved in the NPY file (ids are the headers from the FASTA)
-                    with open(profiles_path / f'{result[3]}bp_seq_ids.txt', mode='a') as file:
+                    with open(profiles_path / f'{result[3]}nc_seq_ids.txt', mode='a') as file:
                         file.writelines(f'{result[0]}\n')
                 
                 N_completed += 1
