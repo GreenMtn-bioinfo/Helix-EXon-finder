@@ -4,17 +4,17 @@ channels:
   - bioconda
   - defaults
 dependencies:
-  - python=3.10.18
+  - python=3.10
   - pip
   - wget
-  - samtools=1.22.1
-  - bedtools=2.31.1
-  - numpy=2.1.3
+  - samtools=1.22
+  - bedtools=2.31
+  - numpy>=2.0
   - pandas
   - colorama==0.4.6
   - biopython==1.86
-  - plotly==6.0.1
-  - beautifulsoup4==4.12.3
+  - plotly==6.0
+  - beautifulsoup4==4.12
   - pip:
       - --find-links https://repo.radeon.com/rocm/manylinux/rocm-rel-7.1/ # NOTE: version # in this line may need adapting based on the age of your hardware (UNTESTED, see README)
       - tensorflow-rocm==2.19.* # NOTE: version # in this line may need adapting based the line above and the age of your hardware (UNTESTED, see README)
