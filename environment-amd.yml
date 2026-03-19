@@ -11,10 +11,10 @@ dependencies:
   - bedtools=2.31
   - numpy=2.1
   - pandas
-  - colorama==0.4
-  - biopython==1.86
-  - plotly==6.0
-  - beautifulsoup4==4.12
+  - colorama=0.4
+  - biopython=1.86
+  - plotly=6.0
+  - beautifulsoup4=4.12
   - pip:
       - --find-links https://repo.radeon.com/rocm/manylinux/rocm-rel-7.1/ # NOTE: version # in this line may need adapting based on the age of your hardware (UNTESTED, see README)
       - tensorflow-rocm==2.19.* # NOTE: version # in this line may need adapting based the line above and the age of your hardware (UNTESTED, see README)

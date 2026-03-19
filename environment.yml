@@ -12,10 +12,10 @@ dependencies:
   - bedtools=2.31
   - numpy=2.1
   - pandas
-  - colorama==0.4
-  - biopython==1.86
-  - plotly==6.0
-  - beautifulsoup4==4.12
+  - colorama=0.4
+  - biopython=1.86
+  - plotly=6.0
+  - beautifulsoup4=4.12
   - cuda-toolkit=12.5
   - cudnn=9.3
   - pip:
