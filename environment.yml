@@ -10,14 +10,14 @@ dependencies:
   - wget
   - samtools=1.22
   - bedtools=2.31
-  - numpy>=2.0
+  - numpy=2.1
   - pandas
-  - colorama=0.4.6
-  - biopython=1.86
-  - plotly=6.0
-  - beautifulsoup4=4.12
-  - cuda-toolkit>=12.0
-  - cudnn
+  - colorama==0.4
+  - biopython==1.86
+  - plotly==6.0
+  - beautifulsoup4==4.12
+  - cuda-toolkit=12.5
+  - cudnn=9.3
   - pip:
       - tensorflow==2.19.*
       - keras-tcn==3.5.6
