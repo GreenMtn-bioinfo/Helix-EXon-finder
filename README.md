@@ -6,14 +6,13 @@
 
     + My research project was inspired by and based on published work by [Mishra et al. in 2021](https://doi.org/10.1093/nar/gkab098), as well as follow-up published work by [Sharma et al. in 2025](https://doi.org/10.1039/D4MO00241E). I do **not** claim to be the original author or owner of the underlying approach, or any external supplemental data used by this repository. I am a curious independent evaluator of an idea that seems interesting, and so I made my own implementation of it to learn more. My project was only possible in a timely manner due to the fact that the authors publicly shared their tri- and tetra-nucleotide mappings to structural parameters (see [Data Dependencies](#data-dependencies) for more details). Likewise, evaluation of their model/pipeline during my project was also only possible because of their GitHub repository: [ChemEXIN](https://github.com/rnsharma478/ChemEXIN).
 
++ A separate repository holds the code written to train and evaluate the models at the heart of HEX-finder, which was the bulk of the work detailed in the [preprint](https://doi.org/10.64898/2025.12.19.694709). Please see [RBIF120-HEX-finder-training](https://github.com/GreenMtn-bioinfo/RBIF120-HEX-finder-training) and its corresponding documentation for more details.
+
 + The results in the [preprint](https://doi.org/10.64898/2025.12.19.694709) make it clear that, in its current state, HEX-finder and its underlying models are not competitive with state-of-the-art *ab initio* gene detection tools. This is unsurprising, given that these models were trained on data that only encapsulates one of many aspects of a gene's layout, and they only make nucleotide-level predictions that need to be interpreted/processed further. That said, incorporation of this type of physicochemical/structural information into a more complex and refined approach may have potential. I am mainly providing the source code to document my effort, or in case anyone finds this implementation interesting and wants to evaluate or build on it.
 
 + I hope to keep improving this tool to see if it can achieve better performance than what was demonstrated in the preprint. It is clear that the models at the heart of this tool cannot reach their full potential without a robust and biologically-motivated post-processing algorithm to sort the signal from the noise in the nucleotide-level predictions. For example, an HMM-based post-processing model coupled with one of the existing structural classification models could result in an improved performance, e.g. by identifying the sets of exon predictions that are more probable once exon length distributions, reading frame consistency, biological viability, etc. are considered.
 
-+ A separate repository will be made to share the code written to train and evaluate the models at the heart of HEX-finder, which was the bulk of the work detailed in the [preprint](https://doi.org/10.64898/2025.12.19.694709). That repository will come with no guarantee of portability/reproducibility, though a basic README for context and a YAML file to recreate the environment/dependencies will be provided.
-
 + Please contact **jhgmbioinfo@gmail.com** with any questions about the [preprint](https://doi.org/10.64898/2025.12.19.694709) or this repository.
-
 
 # Quick Start Guide
 
