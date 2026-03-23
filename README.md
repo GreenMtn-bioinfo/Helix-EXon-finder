@@ -4,7 +4,7 @@
 
 + The models and algorithms at the heart of this tool were developed, trained, and evaluated for my capstone project in the Brandeis GPS Bioinformatics program, during an 8-week independent research course (RBIF 120: Research Topics in Computational Biology). Please see the [preprint](https://doi.org/10.64898/2025.12.19.694709) written about that work for more details.
 
-    + My research project was inspired by and based on published work by [Mishra et al. in 2021](https://doi.org/10.1093/nar/gkab098), as well as follow-up published work by [Sharma et al. in 2025](https://doi.org/10.1039/D4MO00241E). I do **not** claim to be the original author or owner of the underlying approach, or any external supplemental data used by this repository. I am a curious independent evaluator of an idea that seems interesting, and so I made my own implementation of it to learn more. My project was only possible in a timely manner due to the fact that the authors publicly shared their tri- and tetra-nucleotide mappings to structural parameters (see [Data Dependencies](#data-dependencies) for more details). Likewise, evaluation of their model/pipeline during my project was also only possible because of their GitHub repository: [ChemEXIN](https://github.com/rnsharma478/ChemEXIN).
+    + My research project was inspired by and based on published work by [Mishra et al. in 2021](https://doi.org/10.1093/nar/gkab098), as well as follow-up published work by [Sharma et al. in 2025](https://doi.org/10.1039/D4MO00241E). I do **not** claim to be the original author or owner of the underlying approach, or any external supplemental data used by this repository. I am a curious independent evaluator of an idea that seems interesting, and so I made my own implementation of it to learn more. My project was only possible in a timely manner due to the fact that the authors publicly shared their tri- and tetra-nucleotide mappings to structural parameters (see [External Data Dependencies](#external-data-dependencies) for more details). Likewise, evaluation of their model/pipeline during my project was also only possible because of their GitHub repository: [ChemEXIN](https://github.com/rnsharma478/ChemEXIN).
 
 + A separate repository holds the code written to train and evaluate the models at the heart of HEX-finder, which was the bulk of the work detailed in the [preprint](https://doi.org/10.64898/2025.12.19.694709). Please see [RBIF120-HEX-finder-training](https://github.com/GreenMtn-bioinfo/RBIF120-HEX-finder-training) and its corresponding documentation for more details.
 
@@ -178,7 +178,7 @@ Here are the specifications for two different systems and how long HEX-finder to
 Even for a decent consumer-grade CPU, in my experience, the prediction times are at least >100 minutes for the same sequence set.
 
 
-# Data Dependencies
+# External Data Dependencies
 
 The `data/` directory included with this repo contains a number of key files required for HEX-finder to run. Some of these files include data originating from publicly available external sources and I do **not** take credit for, or claim ownership of, this data:
 
